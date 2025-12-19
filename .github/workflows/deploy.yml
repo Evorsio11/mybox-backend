@@ -1,0 +1,62 @@
+name: 构建并部署 Spring Boot 应用
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: [self-hosted, Linux, ARM64]
+
+    steps:
+      - name: 拉取代码
+        uses: actions/checkout@v4
+
+      - name: 设置 JDK 17 环境
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: 赋予 mvnw 可执行权限
+        run: chmod +x mvnw
+
+      - name: 构建项目
+        run: ./mvnw clean package -DskipTests
+
+      - name: 部署应用（停止旧进程并启动新进程）
+        shell: bash
+        run: |
+          set -e
+          # 选择最新且非 original-* 的 JAR
+          JAR_FILE=$(ls -t target/*.jar | grep -v 'original-' | head -n 1)
+          if [ -z "$JAR_FILE" ]; then
+            echo "未找到可部署的 JAR 文件"; exit 1;
+          fi
+
+          # 准备应用目录（Runner 用户 HOME 下）
+          APP_DIR="$HOME/hello"
+          mkdir -p "$APP_DIR"
+
+          # 停止旧进程（如存在）
+          if [ -f "$APP_DIR/app.pid" ]; then
+            OLD_PID=$(cat "$APP_DIR/app.pid")
+            if [ -n "$OLD_PID" ] && ps -p "$OLD_PID" > /dev/null 2>&1; then
+              kill "$OLD_PID" || true
+              # 等待最多15秒直至进程结束
+              for i in $(seq 1 15); do
+                if ps -p "$OLD_PID" > /dev/null 2>&1; then
+                  sleep 1
+                else
+                  break
+                fi
+              done
+            fi
+          fi
+
+          # 启动新进程并记录 PID 与日志
+          nohup java -jar "$JAR_FILE" > "$APP_DIR/app.log" 2>&1 &
+          echo $! > "$APP_DIR/app.pid"
+          echo "应用已启动，PID: $(cat \"$APP_DIR/app.pid\")，日志: $APP_DIR/app.log"
