@@ -33,8 +33,6 @@ jobs:
       # 5️⃣ 部署应用（通过 systemd，用 runner 用户）
       - name: 部署应用
         shell: bash
-        env:
-          RUNNER_HOME: /home/runner
         run: |
           set -euo pipefail
 
@@ -45,7 +43,7 @@ jobs:
             exit 1
           fi
 
-          APP_DIR="$RUNNER_HOME/hello"
+          APP_DIR="$HOME/hello"
           mkdir -p "$APP_DIR"
           cp "$JAR_FILE" "$APP_DIR/app.jar"
 
