@@ -30,9 +30,11 @@ jobs:
       - name: 构建项目
         run: ./mvnw clean package -DskipTests -B -q
 
-      # 5️⃣ 部署应用（通过 systemd）
+      # 5️⃣ 部署应用（通过 systemd，用 runner 用户）
       - name: 部署应用
         shell: bash
+        env:
+          RUNNER_HOME: /home/runner
         run: |
           set -euo pipefail
 
@@ -43,7 +45,7 @@ jobs:
             exit 1
           fi
 
-          APP_DIR="$HOME/hello"
+          APP_DIR="$RUNNER_HOME/hello"
           mkdir -p "$APP_DIR"
           cp "$JAR_FILE" "$APP_DIR/app.jar"
 
@@ -55,7 +57,7 @@ jobs:
           Wants=network-online.target
 
           [Service]
-          User=$USER
+          User=runner
           WorkingDirectory=$APP_DIR
           ExecStart=/usr/bin/env java -jar $APP_DIR/app.jar
           SuccessExitStatus=143
