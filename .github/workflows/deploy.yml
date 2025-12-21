@@ -30,39 +30,33 @@ jobs:
       - name: 赋予 mvnw 可执行权限
         run: chmod +x mvnw
 
-      # 4️⃣ 构建 Spring Boot 项目
+      # 4️⃣ 构建 Spring Boot 项目（提前失败快，镜像内仍会再构建一次）
       - name: 构建项目
         run: ./mvnw clean package -DskipTests -B -q
 
-      # 5️⃣ 使用 Docker 以 runner 用户运行应用，避免 systemd/sudo
-      - name: 以 Docker 方式部署
+      # 5️⃣ 写入部署所需的 .env（使用 secrets，请预先在仓库/环境配置 REDIS_PASSWORD）
+      - name: 生成部署环境变量文件
         shell: bash
         run: |
           set -euo pipefail
+          cat > .env <<'EOF'
+          SPRING_APPLICATION_NAME=hello
+          SPRING_DATA_REDIS_HOST=redis
+          SPRING_DATA_REDIS_PORT=6379
+          SPRING_DATA_REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}
+          SPRING_DATA_REDIS_TIMEOUT=2s
+          SERVER_PORT=8080
+          SERVER_ADDRESS=0.0.0.0
+          EOF
 
-          # 找到最新 JAR（跳过 *.jar.original）
-          JAR_FILE=$(find target -maxdepth 1 -type f -name "*.jar" ! -name "*.jar.original" -printf "%T@ %p\n" | sort -nr | awk 'NR==1{print $2}')
-          if [ -z "${JAR_FILE:-}" ]; then
-            echo "未找到可部署的 JAR 文件"
-            exit 1
-          fi
+      # 6️⃣ 使用 docker compose 构建镜像并启动（app + redis）
+      - name: 使用 docker compose 部署
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker compose -f compose.yml down --remove-orphans
+          docker compose -f compose.yml build app
+          docker compose -f compose.yml up -d
 
-          # 解析为绝对路径，避免 docker 卷名误判
-          JAR_FILE=$(readlink -f "$JAR_FILE")
-
-          APP_NAME="hello-app"
-          HOST_PORT=8080
-
-          # 确保旧容器被清理
-          docker rm -f "$APP_NAME" 2>/dev/null || true
-
-          # 以挂载方式运行，避免在镜像中重复打包 JAR
-          docker run -d \
-            --name "$APP_NAME" \
-            --restart=always \
-            -p "${HOST_PORT}:8080" \
-            -v "${JAR_FILE}:/app/app.jar:ro" \
-            eclipse-temurin:17-jre \
-            java -jar /app/app.jar
-
-          docker ps --filter "name=${APP_NAME}"
+          # 展示状态
+          docker compose -f compose.yml ps

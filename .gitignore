@@ -4,6 +4,17 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 
+# Environment & local overrides
+.env
+*.env.local
+.env.*.local
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+
 ### STS ###
 .apt_generated
 .classpath

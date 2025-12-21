@@ -1,6 +1,12 @@
 spring:
   application:
-    name: hello
+    name: ${SPRING_APPLICATION_NAME:hello}
+  data:
+    redis:
+      host: ${SPRING_DATA_REDIS_HOST:localhost}
+      port: ${SPRING_DATA_REDIS_PORT:6379}
+      password: ${SPRING_DATA_REDIS_PASSWORD:}
+      timeout: ${SPRING_DATA_REDIS_TIMEOUT:2s}
 server:
-  port: 8080
-  address: 0.0.0.0
+  port: ${SERVER_PORT:8080}
+  address: ${SERVER_ADDRESS:0.0.0.0}

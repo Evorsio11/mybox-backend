@@ -1,0 +1,35 @@
+version: "3.9"
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    ports:
+      - "${SERVER_PORT:-8080}:8080"
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: hello-redis
+    env_file:
+      - .env
+    ports:
+      - "${SPRING_DATA_REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis-data:/data
+    command: ["/bin/sh", "-c", "if [ -n \"$SPRING_DATA_REDIS_PASSWORD\" ]; then exec redis-server --appendonly yes --requirepass \"$SPRING_DATA_REDIS_PASSWORD\"; else exec redis-server --appendonly yes; fi"]
+    healthcheck:
+      test: ["CMD-SHELL", "if [ -n \"$SPRING_DATA_REDIS_PASSWORD\" ]; then redis-cli -a \"$SPRING_DATA_REDIS_PASSWORD\" ping; else redis-cli ping; fi"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
+volumes:
+  redis-data:
