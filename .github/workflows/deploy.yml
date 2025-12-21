@@ -54,6 +54,10 @@ jobs:
       # 6️⃣ 使用 docker compose 构建镜像并启动（app + redis）
       - name: 使用 docker compose 部署
         shell: bash
+        env:
+          HTTP_PROXY: http://127.0.0.1:7890
+          HTTPS_PROXY: http://127.0.0.1:7890
+          NO_PROXY: localhost,127.0.0.1,redis,app
         run: |
           set -euo pipefail
           if docker compose version >/dev/null 2>&1; then
