@@ -8,6 +8,7 @@ on:
 jobs:
   build-and-deploy:
     runs-on: [self-hosted, Linux, ARM64]
+    environment: prod
 
     steps:
       # 1️⃣ 拉取最新代码（改用 SSH，需预先在 secrets 配置 REPO_SSH_KEY）
@@ -34,19 +35,20 @@ jobs:
       - name: 构建项目
         run: ./mvnw clean package -DskipTests -B -q
 
-      # 5️⃣ 写入部署所需的 .env（使用 secrets，请预先在仓库/环境配置 REDIS_PASSWORD）
+      # 5️⃣ 生成 .env（值来自 Environment Vars/Secrets）
       - name: 生成部署环境变量文件
         shell: bash
         run: |
           set -euo pipefail
-          cat > .env <<'EOF'
-          SPRING_APPLICATION_NAME=hello
-          SPRING_DATA_REDIS_HOST=redis
-          SPRING_DATA_REDIS_PORT=6379
-          SPRING_DATA_REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}
-          SPRING_DATA_REDIS_TIMEOUT=2s
-          SERVER_PORT=8080
-          SERVER_ADDRESS=0.0.0.0
+          cat > .env <<EOF
+          SPRING_APPLICATION_NAME=${{ vars.SPRING_APPLICATION_NAME }}
+          SPRING_PROFILES_ACTIVE=${{ vars.SPRING_PROFILES_ACTIVE }}
+          SPRING_DATA_REDIS_HOST=${{ vars.SPRING_DATA_REDIS_HOST }}
+          SPRING_DATA_REDIS_PORT=${{ vars.SPRING_DATA_REDIS_PORT }}
+          SPRING_DATA_REDIS_TIMEOUT=${{ vars.SPRING_DATA_REDIS_TIMEOUT }}
+          SERVER_PORT=${{ vars.SERVER_PORT }}
+          SERVER_ADDRESS=${{ vars.SERVER_ADDRESS }}
+          SPRING_DATA_REDIS_PASSWORD=${{ secrets.PROD_REDIS_PASSWORD }}
           EOF
 
       # 6️⃣ 使用 docker compose 构建镜像并启动（app + redis）
@@ -54,9 +56,18 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          docker compose -f compose.yml down --remove-orphans
-          docker compose -f compose.yml build app
-          docker compose -f compose.yml up -d
+          if docker compose version >/dev/null 2>&1; then
+            COMPOSE="docker compose"
+          elif docker-compose version >/dev/null 2>&1; then
+            COMPOSE="docker-compose"
+          else
+            echo "docker compose 未安装，请在 runner 上安装 Compose v2 插件或 docker-compose" >&2
+            exit 1
+          fi
+
+          $COMPOSE -f compose.yml down --remove-orphans
+          $COMPOSE -f compose.yml build app
+          $COMPOSE -f compose.yml up -d
 
           # 展示状态
-          docker compose -f compose.yml ps
+          $COMPOSE -f compose.yml ps
