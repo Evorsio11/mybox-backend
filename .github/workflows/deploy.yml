@@ -68,6 +68,10 @@ jobs:
             echo "docker compose 未安装，请在 runner 上安装 Compose v2 插件或 docker-compose" >&2
             exit 1
           fi
+          
+          # 停掉上一次部署的容器，删除未使用的网络和卷
+          echo "停止并删除上一次部署的容器..."
+          $COMPOSE -f compose.yml down --remove-orphans
 
           $COMPOSE -f compose.yml down --remove-orphans
           $COMPOSE -f compose.yml build app
