@@ -1,10 +1,12 @@
-package com.evorsio.hello;
+package com.evorsio.mybox;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 
 @SpringBootTest
-class HelloApplicationTests {
+@ActiveProfiles("test")
+class MyboxApplicationTests {
 
     @Test
     void contextLoads() {

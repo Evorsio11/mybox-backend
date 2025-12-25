@@ -1,13 +1,12 @@
-package com.evorsio.hello;
+package com.evorsio.mybox;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class HelloApplication {
+public class MyboxApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(HelloApplication.class, args);
+        SpringApplication.run(MyboxApplication.class, args);
     }
-
 }
