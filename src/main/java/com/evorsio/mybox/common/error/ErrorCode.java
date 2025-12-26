@@ -12,7 +12,7 @@ public enum ErrorCode {
     USERNAME_ALREADY_EXISTS("AUTH_1001", "用户名已存在", HttpStatus.CONFLICT),
     EMAIL_ALREADY_EXISTS("AUTH_1002", "邮箱已存在", HttpStatus.CONFLICT),
     USER_NOT_FOUND("AUTH_1003", "用户未找到", HttpStatus.NOT_FOUND),
-    INVALID_CREDENTIALS("AUTH_1004", "用户名或密码错误", HttpStatus.UNAUTHORIZED),
+    INVALID_CREDENTIALS("AUTH_1004", "用户凭据错误", HttpStatus.UNAUTHORIZED),
 
     // 参数校验 1100
     VALIDATION_ERROR("AUTH_1100", "参数校验失败", HttpStatus.BAD_REQUEST),

@@ -63,7 +63,9 @@ public class JwtUtil {
             if (!expectedIssuer.equals(issuer)) {
                 return false;
             }
-
+            if (!claims.getAudience().contains(authJwtProperties.getAudience())) {
+                return false;
+            }
             Date expiration = claims.getExpiration();
             return !expiration.before(new Date());
         } catch (JwtException e) {

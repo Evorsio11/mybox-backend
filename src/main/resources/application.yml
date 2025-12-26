@@ -4,10 +4,6 @@ spring:
   profiles:
     active: ${SPRING_PROFILES_ACTIVE:dev}
 
-  data:
-    redis:
-      timeout: 2s
-
 server:
   address: 0.0.0.0
   port: 8080

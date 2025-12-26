@@ -2,7 +2,7 @@ version: '3.9'
 
 services:
   app:
-    profiles: ["prod"]
+    profiles: [ "prod" ]
     build:
       context: .
       dockerfile: Dockerfile
@@ -28,14 +28,14 @@ services:
       - "6379:6379"
     volumes:
       - redis-data:/data
-      - ./redis-entrypoint.sh:/usr/local/bin/redis-entrypoint.sh
-    entrypoint: ["/usr/local/bin/redis-entrypoint.sh"]
+    command: [ "redis-server", "--requirepass", "${SPRING_DATA_REDIS_PASSWORD}" ]
     healthcheck:
-      test: ["CMD-SHELL", "redis-cli ${SPRING_DATA_REDIS_PASSWORD:+-a $SPRING_DATA_REDIS_PASSWORD} ping"]
+      test: [ "CMD-SHELL", "redis-cli -a ${SPRING_DATA_REDIS_PASSWORD} ping" ]
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 5s
+
 
   minio:
     image: minio/minio:RELEASE.2025-09-07T16-13-09Z
@@ -51,7 +51,7 @@ services:
       - minio-data:/data
     command: server /data
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      test: [ "CMD", "curl", "-f", "http://localhost:9000/minio/health/live" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -71,7 +71,7 @@ services:
     volumes:
       - postgres-data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER}" ]
       interval: 10s
       timeout: 5s
       retries: 5
