@@ -1,0 +1,321 @@
+{
+  "info": {
+    "_postman_id": "000a6f1c-b798-4336-9c9a-76291da84ef7",
+    "name": "mybox",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "登录",
+      "id": "a884e975-f6c4-46bb-bc00-ee45f676da05",
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"username\": \"{{devUserName}}\",\n    \"password\": \"{{devUserPassword}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{apiHost}}/api/auth/login",
+          "host": [
+            "{{apiHost}}"
+          ],
+          "path": [
+            "api",
+            "auth",
+            "login"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "注册",
+      "id": "0574bafd-3029-45b8-8e75-60baa6aff3a1",
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"username\": \"{{devUserName}}\",\n    \"email\": \"{{devUserEmail}}\",\n    \"password\": \"{{devUserPassword}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{apiHost}}/api/auth/register",
+          "host": [
+            "{{apiHost}}"
+          ],
+          "path": [
+            "api",
+            "auth",
+            "register"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "刷新",
+      "id": "0400bb65-1f17-47fa-9ce4-7fcfa0687157",
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"refreshToken\": \"your_refresh_token\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{apiHost}}/api/auth/refresh",
+          "host": [
+            "{{apiHost}}"
+          ],
+          "path": [
+            "api",
+            "auth",
+            "refresh"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "上传文件",
+      "id": "aab79b41-8833-4bf9-b900-534f9919f161",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "type": "file",
+              "key": "file",
+              "src": [
+                "/C:/Users/Lenovo/Desktop/mybox/postman/files/file_example_MP3_700KB.mp3"
+              ]
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{apiHost}}/api/files/upload",
+          "host": [
+            "{{apiHost}}"
+          ],
+          "path": [
+            "api",
+            "files",
+            "upload"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "下载文件",
+      "id": "65bbffdb-88f1-447e-8b24-55d7b6b0ce90",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"fileId\": \"{{devUserId}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{apiHost}}/api/files/download",
+          "host": [
+            "{{apiHost}}"
+          ],
+          "path": [
+            "api",
+            "files",
+            "download"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "删除文件",
+      "id": "a0fcb911-32fd-47a4-bf00-16a644d56cf7",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"fileId\": \"f97baed3-e97e-4f43-b414-fb0e6c16cf6c\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8080/api/files/delete",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "files",
+            "delete"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "列出所有文件",
+      "id": "c88ab790-9e58-4c20-9b2c-812f73d3fb48",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{apiHost}}/api/files?ownerId={{devUserId}}",
+          "host": [
+            "{{apiHost}}"
+          ],
+          "path": [
+            "api",
+            "files"
+          ],
+          "query": [
+            {
+              "key": "ownerId",
+              "value": "{{devUserId}}",
+              "uuid": "3ba45b63-2dee-4293-985f-5afa17298240"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "列出已删除文件",
+      "id": "9dfac754-5d50-43df-8811-a5d13ee6167d",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{apiHost}}/api/files/deleted?ownerId={{devUserId}}",
+          "host": [
+            "{{apiHost}}"
+          ],
+          "path": [
+            "api",
+            "files",
+            "deleted"
+          ],
+          "query": [
+            {
+              "key": "ownerId",
+              "value": "{{devUserId}}",
+              "uuid": "020453a3-63c2-4227-b9c8-8c620a9227c5"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "恢复已删除文件",
+      "id": "b5fc89c8-637e-499b-b0aa-01d174841ad8",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"fileId\": \"f97baed3-e97e-4f43-b414-fb0e6c16cf6c\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{apiHost}}/api/files/restore",
+          "host": [
+            "{{apiHost}}"
+          ],
+          "path": [
+            "api",
+            "files",
+            "restore"
+          ]
+        }
+      },
+      "response": []
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{AccessToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "id": "91f1bb6a-9a79-438c-98cf-024189f2b29c",
+      "key": "devUserName",
+      "value": "devUser"
+    },
+    {
+      "id": "606f7f28-939c-41cb-ad06-4c80734901d7",
+      "key": "devUserPassword",
+      "value": "123abc"
+    },
+    {
+      "id": "4f9dff0e-88e4-4859-9dc5-b28c2ebb6f2b",
+      "key": "devUserEmail",
+      "value": "dev@example.com"
+    },
+    {
+      "id": "ac307b2b-10e6-485d-ae82-3e9308d09053",
+      "key": "devUserId",
+      "value": "a34b4c7c-5985-4a5e-af37-9e9c444b3bb2"
+    },
+    {
+      "id": "003d6818-b120-4105-a794-dc8e9a0a49fa",
+      "key": "apiHost",
+      "value": "http://localhost:8080"
+    }
+  ]
+}

@@ -4,11 +4,9 @@ import com.evorsio.mybox.auth.domain.TokenType;
 import com.evorsio.mybox.auth.domain.User;
 import com.evorsio.mybox.auth.domain.UserRole;
 import com.evorsio.mybox.auth.dto.TokenResponse;
-import com.evorsio.mybox.auth.exception.EmailAlreadyExistsException;
-import com.evorsio.mybox.auth.exception.InvalidCredentialsException;
-import com.evorsio.mybox.auth.exception.UserNotFoundException;
-import com.evorsio.mybox.auth.exception.UsernameAlreadyExistsException;
+import com.evorsio.mybox.auth.exception.AuthException;
 import com.evorsio.mybox.auth.repository.UserRepository;
+import com.evorsio.mybox.common.error.ErrorCode;
 import com.evorsio.mybox.auth.service.AuthService;
 import com.evorsio.mybox.auth.service.RefreshTokenService;
 import com.evorsio.mybox.auth.util.JwtClaimsBuilder;
@@ -34,10 +32,10 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public TokenResponse register(String username, String email, String rawPassword) {
         if (userRepository.existsByUsername(username)) {
-            throw new UsernameAlreadyExistsException();
+            throw new AuthException(ErrorCode.USERNAME_ALREADY_EXISTS);
         }
         if (userRepository.existsByEmail(email)) {
-            throw new EmailAlreadyExistsException();
+            throw new AuthException(ErrorCode.EMAIL_ALREADY_EXISTS);
         }
 
         String encodedPassword = passwordEncoder.encode(rawPassword);
@@ -57,9 +55,9 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public TokenResponse login(String username, String rawPassword) {
         User user = userRepository.findByUsername(username)
-                .orElseThrow(UserNotFoundException::new);
+                .orElseThrow(() -> new AuthException(ErrorCode.USER_NOT_FOUND));
         if (!passwordEncoder.matches(rawPassword, user.getPassword())) {
-            throw new InvalidCredentialsException();
+            throw new AuthException(ErrorCode.INVALID_CREDENTIALS);
         }
         return generateTokenResponse(user);
     }
@@ -74,10 +72,10 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public TokenResponse refreshToken(UUID userId, String refreshToken) {
         if (!refreshTokenService.validateToken(userId, refreshToken)) {
-            throw new InvalidCredentialsException();
+            throw new AuthException(ErrorCode.INVALID_CREDENTIALS);
         }
         User user = userRepository.findById(userId)
-                .orElseThrow(UserNotFoundException::new);
+                .orElseThrow(() -> new AuthException(ErrorCode.USER_NOT_FOUND));
         return generateTokenResponse(user);
     }
 

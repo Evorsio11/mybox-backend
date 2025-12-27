@@ -5,8 +5,12 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 @Data
@@ -16,7 +20,6 @@ import java.util.UUID;
 @Table(name = "files")
 @Comment("文件元数据表，对应 MinIO 中的对象信息")
 public class File {
-
     @Id
     @GeneratedValue
     @Comment("文件记录唯一标识（数据库主键）")
@@ -46,9 +49,10 @@ public class File {
     @Comment("文件所属用户 ID（与用户系统关联）")
     private UUID ownerId;
 
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
-    @Comment("文件扩展元数据（JSON对象，如标签、校验值等）")
-    private String metadata;
+    @Comment("文件自定义元数据，存储为 JSON 格式")
+    private Map<String, Object> metadata = new HashMap<>();
 
     @Column(nullable = false, updatable = false)
     @Comment("文件创建时间")
@@ -58,9 +62,9 @@ public class File {
     @Comment("文件最后更新时间")
     private LocalDateTime updatedAt;
 
-    @Comment("文件状态：ACTIVE / DELETED")
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
+    @Comment("文件状态：ACTIVE / DELETED")
     private FileStatus status = FileStatus.UPLOADING;
 
     @PrePersist

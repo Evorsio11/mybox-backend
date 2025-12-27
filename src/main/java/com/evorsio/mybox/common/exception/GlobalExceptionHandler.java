@@ -17,7 +17,9 @@ public class GlobalExceptionHandler {
     private static final Map<String, ErrorCode> REQUIRED_FIELD_MAP = Map.of(
             "username", ErrorCode.USERNAME_REQUIRED,
             "email", ErrorCode.EMAIL_REQUIRED,
-            "password", ErrorCode.PASSWORD_REQUIRED
+            "password", ErrorCode.PASSWORD_REQUIRED,
+            "fileId", ErrorCode.FILE_ID_REQUIRED,
+            "file", ErrorCode.FILE_REQUIRED
     );
     private static final Map<String, ErrorCode> FORMAT_ERROR_MAP = Map.of(
             "username", ErrorCode.USERNAME_FORMAT_INVALID,
@@ -39,7 +41,7 @@ public class GlobalExceptionHandler {
         String code = fieldError.getCode();
 
         ErrorCode errorCode;
-        if ("NotBlank".equals(code)) {
+        if ("NotBlank".equals(code) || "NotNull".equals(code)) {
             errorCode = REQUIRED_FIELD_MAP.getOrDefault(field, ErrorCode.VALIDATION_ERROR);
         } else {
             errorCode = FORMAT_ERROR_MAP.getOrDefault(field, ErrorCode.VALIDATION_ERROR);
