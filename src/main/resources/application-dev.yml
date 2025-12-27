@@ -41,5 +41,7 @@ mybox:
       issuer: mybox-server
       audience: mybox-client
       token-prefix: Bearer
-
+  common:
+    cors:
+      allowed-origins: http://localhost:3000
 
