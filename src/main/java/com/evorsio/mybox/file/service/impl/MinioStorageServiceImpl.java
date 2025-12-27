@@ -1,6 +1,6 @@
-package com.evorsio.mybox.storage.service.impl;
+package com.evorsio.mybox.file.service.impl;
 
-import com.evorsio.mybox.storage.service.MinioStorageService;
+import com.evorsio.mybox.file.service.MinioStorageService;
 import io.minio.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

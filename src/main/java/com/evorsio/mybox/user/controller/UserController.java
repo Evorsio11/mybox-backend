@@ -1,18 +1,28 @@
 package com.evorsio.mybox.user.controller;
 
+import com.evorsio.mybox.user.dto.UserInfoResponse;
+import com.evorsio.mybox.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.UUID;
+
 @RestController
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
 public class UserController {
-    @GetMapping("/hello")
-    public String hello(Authentication authentication) {
-        String username = authentication.getName();
-        return "Hello, " + username + "! JWT验证成功。";
+
+    private final UserService userService;
+
+    @GetMapping("/me")
+    public UserInfoResponse getCurrentUser(Authentication authentication) {
+        // 从 JWT 获取用户 ID
+        Object details = authentication.getDetails();
+        UUID userId = UUID.fromString(details.toString());
+
+        return userService.getUserInfo(userId);
     }
 }

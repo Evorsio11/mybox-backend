@@ -1,4 +1,4 @@
-package com.evorsio.mybox.storage.domain;
+package com.evorsio.mybox.file.domain;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -61,6 +61,10 @@ public class File {
     @Column(nullable = false)
     @Comment("文件最后更新时间")
     private LocalDateTime updatedAt;
+
+    @Column(nullable = false)
+    @Comment("文件哈希值")
+    private String fileHash;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

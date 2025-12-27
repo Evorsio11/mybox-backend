@@ -29,10 +29,13 @@ public enum ErrorCode {
     FILE_RESTORE_FAILED("FILE_2004", "文件恢复失败", HttpStatus.INTERNAL_SERVER_ERROR),
     FILE_DOWNLOAD_FAILED("FILE_2005", "文件下载失败", HttpStatus.INTERNAL_SERVER_ERROR),
 
+
     // File 参数校验
     OWNER_ID_REQUIRED("FILE_2101", "ownerId 不能为空", HttpStatus.BAD_REQUEST),
     FILE_ID_REQUIRED("FILE_2102", "fileId 不能为空", HttpStatus.BAD_REQUEST),
     FILE_REQUIRED("FILE_2103", "文件不能为空", HttpStatus.BAD_REQUEST),
+    FILE_TYPE_NOT_ALLOWED("FILE_2104", "文件类型不允许", HttpStatus.BAD_REQUEST),
+    FILE_TOO_LARGE("FILE_2006", "上传文件太大，超过允许的最大限制", HttpStatus.PAYLOAD_TOO_LARGE),
 
     // 格式错误
     USERNAME_FORMAT_INVALID("AUTH_1111", "用户名格式不正确", HttpStatus.BAD_REQUEST),

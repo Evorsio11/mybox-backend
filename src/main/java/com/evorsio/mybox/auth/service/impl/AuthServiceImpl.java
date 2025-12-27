@@ -5,7 +5,7 @@ import com.evorsio.mybox.auth.domain.User;
 import com.evorsio.mybox.auth.domain.UserRole;
 import com.evorsio.mybox.auth.dto.TokenResponse;
 import com.evorsio.mybox.auth.exception.AuthException;
-import com.evorsio.mybox.auth.repository.UserRepository;
+import com.evorsio.mybox.auth.repository.AuthRepository;
 import com.evorsio.mybox.common.error.ErrorCode;
 import com.evorsio.mybox.auth.service.AuthService;
 import com.evorsio.mybox.auth.service.RefreshTokenService;
@@ -23,7 +23,7 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
-    private final UserRepository userRepository;
+    private final AuthRepository authRepository;
     private final PasswordEncoder passwordEncoder;
     private final RefreshTokenService refreshTokenService;
     private final JwtUtil jwtUtil;
@@ -31,18 +31,18 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public TokenResponse register(String username, String email, String rawPassword) {
-        if (userRepository.existsByUsername(username)) {
+        if (authRepository.existsByUsername(username)) {
             throw new AuthException(ErrorCode.USERNAME_ALREADY_EXISTS);
         }
-        if (userRepository.existsByEmail(email)) {
+        if (authRepository.existsByEmail(email)) {
             throw new AuthException(ErrorCode.EMAIL_ALREADY_EXISTS);
         }
 
         String encodedPassword = passwordEncoder.encode(rawPassword);
 
-        UserRole role = userRepository.count() == 0 ? UserRole.ADMIN : UserRole.USER;
+        UserRole role = authRepository.count() == 0 ? UserRole.ADMIN : UserRole.USER;
 
-        User user = userRepository.save(User.builder()
+        User user = authRepository.save(User.builder()
                 .username(username)
                 .email(email)
                 .password(encodedPassword)
@@ -54,7 +54,7 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public TokenResponse login(String username, String rawPassword) {
-        User user = userRepository.findByUsername(username)
+        User user = authRepository.findByUsername(username)
                 .orElseThrow(() -> new AuthException(ErrorCode.USER_NOT_FOUND));
         if (!passwordEncoder.matches(rawPassword, user.getPassword())) {
             throw new AuthException(ErrorCode.INVALID_CREDENTIALS);
@@ -64,7 +64,7 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public boolean validateUser(String username, String password) {
-        return userRepository.findByUsername(username)
+        return authRepository.findByUsername(username)
                 .map(user -> passwordEncoder.matches(password, user.getPassword()))
                 .orElse(false);
     }
@@ -74,7 +74,7 @@ public class AuthServiceImpl implements AuthService {
         if (!refreshTokenService.validateToken(userId, refreshToken)) {
             throw new AuthException(ErrorCode.INVALID_CREDENTIALS);
         }
-        User user = userRepository.findById(userId)
+        User user = authRepository.findById(userId)
                 .orElseThrow(() -> new AuthException(ErrorCode.USER_NOT_FOUND));
         return generateTokenResponse(user);
     }

@@ -1,4 +1,4 @@
-package com.evorsio.mybox.storage.dto;
+package com.evorsio.mybox.file.dto;
 
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;

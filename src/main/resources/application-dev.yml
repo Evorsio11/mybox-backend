@@ -21,6 +21,10 @@ spring:
     user:
       name: ${SPRING_SECURITY_USER_NAME}
       password: ${SPRING_SECURITY_USER_PASSWORD}
+  servlet:
+    multipart:
+      max-file-size: 10GB
+      max-request-size: 10GB
 
 minio:
   endpoint: http://localhost:9000
@@ -44,4 +48,8 @@ mybox:
   common:
     cors:
       allowed-origins: http://localhost:3000
+  file:
+    upload:
+      allowed-content-types: [ image/png, image/jpeg, image/gif, application/pdf, text/plain ]
+      allowed-extensions: [ png, jpg, jpeg, gif, pdf, txt ]
 

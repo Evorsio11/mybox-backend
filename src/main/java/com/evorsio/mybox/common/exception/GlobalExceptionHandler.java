@@ -3,11 +3,14 @@ package com.evorsio.mybox.common.exception;
 import com.evorsio.mybox.common.error.ErrorCode;
 import com.evorsio.mybox.common.response.ErrorResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 import java.util.Map;
 
@@ -55,6 +58,14 @@ public class GlobalExceptionHandler {
         ErrorCode errorCode = e.getErrorCode();
         return ResponseEntity.status(errorCode.getStatus())
                 .body(new ErrorResponse(errorCode.getCode(), e.getMessage()));
+    }
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<ErrorResponse> handleMaxUploadSizeExceeded(MaxUploadSizeExceededException ex) {
+        log.error("上传文件超出限制", ex);
+        ErrorCode errorCode = ErrorCode.FILE_TOO_LARGE;
+        ErrorResponse response = new ErrorResponse(errorCode.getCode(), errorCode.getMessage());
+        return ResponseEntity.status(errorCode.getStatus()).body(response);
     }
 
     @ExceptionHandler(Exception.class)

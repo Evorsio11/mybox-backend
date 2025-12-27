@@ -1,6 +1,6 @@
-package com.evorsio.mybox.storage.service;
+package com.evorsio.mybox.file.service;
 
-import com.evorsio.mybox.storage.domain.File;
+import com.evorsio.mybox.file.domain.File;
 
 import java.io.InputStream;
 import java.util.List;

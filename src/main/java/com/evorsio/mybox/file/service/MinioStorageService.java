@@ -1,4 +1,4 @@
-package com.evorsio.mybox.storage.service;
+package com.evorsio.mybox.file.service;
 
 import java.io.InputStream;
 

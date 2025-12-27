@@ -1,4 +1,4 @@
-package com.evorsio.mybox.storage.domain;
+package com.evorsio.mybox.file.domain;
 
 import lombok.Getter;
 
