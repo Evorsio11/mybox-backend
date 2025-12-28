@@ -62,6 +62,9 @@ public class File {
     @Comment("文件最后更新时间")
     private LocalDateTime updatedAt;
 
+    @Comment("文件软删除时间")
+    private LocalDateTime deletedAt;
+
     @Column(nullable = false)
     @Comment("文件哈希值")
     private String fileHash;

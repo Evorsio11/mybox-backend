@@ -8,6 +8,6 @@ import java.util.List;
 
 @Data
 public class FileUploadRequest {
-    @NotEmpty
+    @NotEmpty(message = "文件列表不能为空")
     private List<MultipartFile> files;
 }

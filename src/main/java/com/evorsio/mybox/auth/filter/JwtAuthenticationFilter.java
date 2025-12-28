@@ -1,7 +1,7 @@
 package com.evorsio.mybox.auth.filter;
 
 import com.evorsio.mybox.auth.util.JwtUtil;
-import com.evorsio.mybox.common.properties.AuthJwtProperties;
+import com.evorsio.mybox.auth.properties.AuthJwtProperties;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

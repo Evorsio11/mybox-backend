@@ -25,6 +25,7 @@ spring:
     multipart:
       max-file-size: 10GB
       max-request-size: 10GB
+      location: ${mybox.file.storage.temp-dir}
 
 minio:
   endpoint: http://localhost:9000
@@ -47,9 +48,44 @@ mybox:
       token-prefix: Bearer
   common:
     cors:
-      allowed-origins: http://localhost:3000
+      allowed-origins: http://192.168.1.11:3000, http://localhost:3000
   file:
-    upload:
-      allowed-content-types: [ image/png, image/jpeg, image/gif, application/pdf, text/plain ]
-      allowed-extensions: [ png, jpg, jpeg, gif, pdf, txt ]
+    storage:                                # 存储相关限制
+      temp-dir: E:/mybox/temp              # 临时文件目录
+      max-file-size: 2GB                    # 单文件最大大小
+      max-total-size: 10GB                  # 用户总存储上限
+      retention: 168h      # 7天 = 168小时
+    upload:                                 # 上传策略
+      types:                                # 文件类型相关策略
+        allow-all: false
+        allowed-content-types:
+          - image/png
+          - image/jpeg
+          - image/gif
+          - application/pdf
+          - text/plain
+        allowed-extensions:
+          - png
+          - jpg
+          - jpeg
+          - gif
+          - pdf
+          - txt
+      chunk:                                # 分片上传策略
+        enabled: true
+        min-size: 100MB                     # 启用分片上传的最小文件大小
+        chunk-size: 5MB                      # 每个分片大小
+        enable-concurrent: true              # 是否启用并发上传
+        max-concurrent: 4                    # 最大并发上传数
+        enable-deduplication: true           # 是否启用去重
+        deduplication-strategy: merge        # 去重策略: merge 或 chunk
+        session-timeout: 24h                 # 上传会话过期时间
+        max-retry: 3                         # 单分片最大重试次数
+        retry-delay: 5s                       # 分片重试间隔
+        cleanup-expired: true                 # 自动清理过期会话
+        cleanup-interval: 1h                  # 清理间隔
+    download:                               # 下载策略
+      enable-rate-limit: true
+      max-bytes-per-second: 500KB           # 最大下载速度
+
 

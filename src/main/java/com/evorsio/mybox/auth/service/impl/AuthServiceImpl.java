@@ -11,7 +11,7 @@ import com.evorsio.mybox.auth.service.AuthService;
 import com.evorsio.mybox.auth.service.RefreshTokenService;
 import com.evorsio.mybox.auth.util.JwtClaimsBuilder;
 import com.evorsio.mybox.auth.util.JwtUtil;
-import com.evorsio.mybox.common.properties.AuthJwtProperties;
+import com.evorsio.mybox.auth.properties.AuthJwtProperties;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;

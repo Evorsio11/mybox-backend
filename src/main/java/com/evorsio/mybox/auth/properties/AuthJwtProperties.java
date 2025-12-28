@@ -1,4 +1,4 @@
-package com.evorsio.mybox.common.properties;
+package com.evorsio.mybox.auth.properties;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;

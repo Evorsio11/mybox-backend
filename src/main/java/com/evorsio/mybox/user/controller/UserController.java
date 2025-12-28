@@ -1,5 +1,6 @@
 package com.evorsio.mybox.user.controller;
 
+import com.evorsio.mybox.common.response.ApiResponse;
 import com.evorsio.mybox.user.dto.UserInfoResponse;
 import com.evorsio.mybox.user.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -18,11 +19,12 @@ public class UserController {
     private final UserService userService;
 
     @GetMapping("/me")
-    public UserInfoResponse getCurrentUser(Authentication authentication) {
+    public ApiResponse<UserInfoResponse> getCurrentUser(Authentication authentication) {
         // 从 JWT 获取用户 ID
         Object details = authentication.getDetails();
         UUID userId = UUID.fromString(details.toString());
 
-        return userService.getUserInfo(userId);
+        UserInfoResponse userInfo = userService.getUserInfo(userId);
+        return ApiResponse.success("获取用户信息成功", userInfo);
     }
 }

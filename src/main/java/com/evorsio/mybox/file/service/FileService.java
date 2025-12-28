@@ -13,6 +13,8 @@ public interface FileService {
 
     InputStream downloadFile(UUID ownerId, UUID fileId);
 
+    InputStream downloadPartialFile(UUID ownerId, UUID fileId, long start, long end);
+
     void deleteFile(UUID ownerId, UUID fileId);
 
     List<File> listFiles(UUID ownerId);

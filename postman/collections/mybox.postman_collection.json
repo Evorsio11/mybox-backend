@@ -1,321 +1,764 @@
 {
   "info": {
     "_postman_id": "000a6f1c-b798-4336-9c9a-76291da84ef7",
-    "name": "mybox",
+    "name": "MyBox API",
+    "description": "MyBox 云存储系统 API 接口集合",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
     {
-      "name": "登录",
-      "id": "a884e975-f6c4-46bb-bc00-ee45f676da05",
-      "request": {
-        "auth": {
-          "type": "noauth"
-        },
-        "method": "POST",
-        "header": [],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n    \"username\": \"{{devUserName}}\",\n    \"password\": \"{{devUserPassword}}\"\n}",
-          "options": {
-            "raw": {
-              "language": "json"
-            }
-          }
-        },
-        "url": {
-          "raw": "{{apiHost}}/api/auth/login",
-          "host": [
-            "{{apiHost}}"
-          ],
-          "path": [
-            "api",
-            "auth",
-            "login"
-          ]
-        }
-      },
-      "response": []
-    },
-    {
-      "name": "注册",
-      "id": "0574bafd-3029-45b8-8e75-60baa6aff3a1",
-      "request": {
-        "auth": {
-          "type": "noauth"
-        },
-        "method": "POST",
-        "header": [],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n    \"username\": \"{{devUserName}}\",\n    \"email\": \"{{devUserEmail}}\",\n    \"password\": \"{{devUserPassword}}\"\n}",
-          "options": {
-            "raw": {
-              "language": "json"
-            }
-          }
-        },
-        "url": {
-          "raw": "{{apiHost}}/api/auth/register",
-          "host": [
-            "{{apiHost}}"
-          ],
-          "path": [
-            "api",
-            "auth",
-            "register"
-          ]
-        }
-      },
-      "response": []
-    },
-    {
-      "name": "刷新",
-      "id": "0400bb65-1f17-47fa-9ce4-7fcfa0687157",
-      "request": {
-        "auth": {
-          "type": "noauth"
-        },
-        "method": "POST",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/json"
-          }
-        ],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"refreshToken\": \"your_refresh_token\"\n}",
-          "options": {
-            "raw": {
-              "language": "json"
-            }
-          }
-        },
-        "url": {
-          "raw": "{{apiHost}}/api/auth/refresh",
-          "host": [
-            "{{apiHost}}"
-          ],
-          "path": [
-            "api",
-            "auth",
-            "refresh"
-          ]
-        }
-      },
-      "response": []
-    },
-    {
-      "name": "上传文件",
-      "id": "aab79b41-8833-4bf9-b900-534f9919f161",
-      "request": {
-        "method": "POST",
-        "header": [],
-        "body": {
-          "mode": "formdata",
-          "formdata": [
+      "name": "用户认证",
+      "item": [
+        {
+          "name": "用户登录",
+          "event": [
             {
-              "type": "file",
-              "key": "file",
-              "src": [
-                "/C:/Users/Lenovo/Desktop/mybox/postman/files/file_example_MP3_700KB.mp3"
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.environment.set(\"AccessToken\", response.accessToken);",
+                  "    pm.environment.set(\"RefreshToken\", response.refreshToken);",
+                  "    console.log(\"登录成功，Token 已保存到环境变量\");",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "id": "login",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"username\": \"{{devUserName}}\",\n    \"password\": \"{{devUserPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{apiHost}}/api/auth/login",
+              "host": [
+                "{{apiHost}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
               ]
-            }
-          ]
+            },
+            "description": "使用用户名和密码登录系统，成功后返回访问令牌"
+          },
+          "response": []
         },
-        "url": {
-          "raw": "{{apiHost}}/api/files/upload",
-          "host": [
-            "{{apiHost}}"
-          ],
-          "path": [
-            "api",
-            "files",
-            "upload"
-          ]
+        {
+          "name": "用户注册",
+          "id": "register",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"username\": \"{{devUserName}}\",\n    \"email\": \"{{devUserEmail}}\",\n    \"password\": \"{{devUserPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{apiHost}}/api/auth/register",
+              "host": [
+                "{{apiHost}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "register"
+              ]
+            },
+            "description": "注册新用户账号"
+          },
+          "response": []
+        },
+        {
+          "name": "刷新令牌",
+          "id": "refresh",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{RefreshToken}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{apiHost}}/api/auth/refresh",
+              "host": [
+                "{{apiHost}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "refresh"
+              ]
+            },
+            "description": "使用刷新令牌获取新的访问令牌"
+          },
+          "response": []
         }
-      },
-      "response": []
+      ],
+      "id": "d3a430d0-b6d6-4b9f-a71c-0464a219b92d"
     },
     {
-      "name": "下载文件",
-      "id": "65bbffdb-88f1-447e-8b24-55d7b6b0ce90",
-      "request": {
-        "method": "POST",
-        "header": [],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"fileId\": \"{{devUserId}}\"\n}",
-          "options": {
-            "raw": {
-              "language": "json"
-            }
-          }
-        },
-        "url": {
-          "raw": "{{apiHost}}/api/files/download",
-          "host": [
-            "{{apiHost}}"
-          ],
-          "path": [
-            "api",
-            "files",
-            "download"
-          ]
+      "name": "用户信息",
+      "item": [
+        {
+          "name": "获取当前用户信息",
+          "id": "getCurrentUser",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{AccessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{apiHost}}/api/users/me",
+              "host": [
+                "{{apiHost}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "me"
+              ]
+            },
+            "description": "获取当前登录用户的个人信息"
+          },
+          "response": []
         }
-      },
-      "response": []
+      ],
+      "id": "bd7ac108-8963-4ef3-bcac-800161219080"
     },
     {
-      "name": "删除文件",
-      "id": "a0fcb911-32fd-47a4-bf00-16a644d56cf7",
-      "request": {
-        "method": "POST",
-        "header": [],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"fileId\": \"f97baed3-e97e-4f43-b414-fb0e6c16cf6c\"\n}",
-          "options": {
-            "raw": {
-              "language": "json"
-            }
-          }
+      "name": "文件管理",
+      "item": [
+        {
+          "name": "上传文件",
+          "id": "uploadFile",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{AccessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "files",
+                  "type": "file",
+                  "description": "要上传的文件（可多选）",
+                  "src": [
+                    "/C:/Users/Lenovo/Desktop/mybox/postman/files/file_example_MP3_700KB.mp3"
+                  ]
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{apiHost}}/api/files/upload",
+              "host": [
+                "{{apiHost}}"
+              ],
+              "path": [
+                "api",
+                "files",
+                "upload"
+              ]
+            },
+            "description": "上传文件到系统（支持多文件上传）"
+          },
+          "response": []
         },
-        "url": {
-          "raw": "http://localhost:8080/api/files/delete",
-          "protocol": "http",
-          "host": [
-            "localhost"
-          ],
-          "port": "8080",
-          "path": [
-            "api",
-            "files",
-            "delete"
-          ]
+        {
+          "name": "下载文件",
+          "id": "downloadFile",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{AccessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fileId\": \"{{fileId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{apiHost}}/api/files/download",
+              "host": [
+                "{{apiHost}}"
+              ],
+              "path": [
+                "api",
+                "files",
+                "download"
+              ]
+            },
+            "description": "根据文件ID下载文件"
+          },
+          "response": []
+        },
+        {
+          "name": "删除文件",
+          "id": "deleteFile",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{AccessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fileId\": \"{{fileId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{apiHost}}/api/files/delete",
+              "host": [
+                "{{apiHost}}"
+              ],
+              "path": [
+                "api",
+                "files",
+                "delete"
+              ]
+            },
+            "description": "将文件移至回收站（软删除）"
+          },
+          "response": []
+        },
+        {
+          "name": "恢复文件",
+          "id": "restoreFile",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{AccessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fileId\": \"{{fileId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{apiHost}}/api/files/restore",
+              "host": [
+                "{{apiHost}}"
+              ],
+              "path": [
+                "api",
+                "files",
+                "restore"
+              ]
+            },
+            "description": "从回收站恢复已删除的文件"
+          },
+          "response": []
+        },
+        {
+          "name": "列出所有文件",
+          "id": "listFiles",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{AccessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{apiHost}}/api/files?ownerId={{devUserId}}",
+              "host": [
+                "{{apiHost}}"
+              ],
+              "path": [
+                "api",
+                "files"
+              ],
+              "query": [
+                {
+                  "key": "ownerId",
+                  "value": "{{devUserId}}"
+                }
+              ]
+            },
+            "description": "获取用户的所有文件列表（不包括已删除文件）"
+          },
+          "response": []
+        },
+        {
+          "name": "列出已删除文件",
+          "id": "listDeletedFiles",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{AccessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{apiHost}}/api/files/deleted?ownerId={{devUserId}}",
+              "host": [
+                "{{apiHost}}"
+              ],
+              "path": [
+                "api",
+                "files",
+                "deleted"
+              ],
+              "query": [
+                {
+                  "key": "ownerId",
+                  "value": "{{devUserId}}"
+                }
+              ]
+            },
+            "description": "获取回收站中的文件列表"
+          },
+          "response": []
         }
-      },
-      "response": []
+      ],
+      "id": "0fffc4cb-1d8c-4221-b1a7-22aa8e9f55e7"
     },
     {
-      "name": "列出所有文件",
-      "id": "c88ab790-9e58-4c20-9b2c-812f73d3fb48",
-      "request": {
-        "method": "GET",
-        "header": [],
-        "url": {
-          "raw": "{{apiHost}}/api/files?ownerId={{devUserId}}",
-          "host": [
-            "{{apiHost}}"
-          ],
-          "path": [
-            "api",
-            "files"
-          ],
-          "query": [
+      "name": "分块上传",
+      "item": [
+        {
+          "name": "初始化上传",
+          "event": [
             {
-              "key": "ownerId",
-              "value": "{{devUserId}}",
-              "uuid": "3ba45b63-2dee-4293-985f-5afa17298240"
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.environment.set(\"uploadId\", response.uploadId);",
+                  "    pm.environment.set(\"chunkSize\", response.chunkSize);",
+                  "    pm.environment.set(\"totalChunks\", response.totalChunks);",
+                  "    console.log(\"初始化上传成功，uploadId:\", response.uploadId);",
+                  "}"
+                ]
+              }
             }
-          ]
-        }
-      },
-      "response": []
-    },
-    {
-      "name": "列出已删除文件",
-      "id": "9dfac754-5d50-43df-8811-a5d13ee6167d",
-      "request": {
-        "method": "GET",
-        "header": [],
-        "url": {
-          "raw": "{{apiHost}}/api/files/deleted?ownerId={{devUserId}}",
-          "host": [
-            "{{apiHost}}"
           ],
-          "path": [
-            "api",
-            "files",
-            "deleted"
-          ],
-          "query": [
-            {
-              "key": "ownerId",
-              "value": "{{devUserId}}",
-              "uuid": "020453a3-63c2-4227-b9c8-8c620a9227c5"
-            }
-          ]
-        }
-      },
-      "response": []
-    },
-    {
-      "name": "恢复已删除文件",
-      "id": "b5fc89c8-637e-499b-b0aa-01d174841ad8",
-      "request": {
-        "method": "POST",
-        "header": [],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"fileId\": \"f97baed3-e97e-4f43-b414-fb0e6c16cf6c\"\n}",
-          "options": {
-            "raw": {
-              "language": "json"
-            }
-          }
+          "id": "initChunkUpload",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{AccessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"originalFileName\": \"large-file.zip\",\n  \"fileSize\": 10485760,\n  \"contentType\": \"application/zip\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{apiHost}}/api/files/chunk/init",
+              "host": [
+                "{{apiHost}}"
+              ],
+              "path": [
+                "api",
+                "files",
+                "chunk",
+                "init"
+              ]
+            },
+            "description": "初始化分块上传会话，返回 uploadId 和分块信息"
+          },
+          "response": []
         },
-        "url": {
-          "raw": "{{apiHost}}/api/files/restore",
-          "host": [
-            "{{apiHost}}"
-          ],
-          "path": [
-            "api",
-            "files",
-            "restore"
-          ]
+        {
+          "name": "上传分块",
+          "id": "uploadChunk",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{AccessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "uploadId",
+                  "value": "{{uploadId}}",
+                  "type": "text"
+                },
+                {
+                  "key": "chunkNumber",
+                  "value": "1",
+                  "type": "text"
+                },
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": [
+                    "/C:/Users/Lenovo/Desktop/mybox/postman/files/zip_2MB.zip"
+                  ]
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{apiHost}}/api/files/chunk/upload",
+              "host": [
+                "{{apiHost}}"
+              ],
+              "path": [
+                "api",
+                "files",
+                "chunk",
+                "upload"
+              ]
+            },
+            "description": "上传单个文件分块"
+          },
+          "response": []
+        },
+        {
+          "name": "合并分块",
+          "id": "mergeChunks",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{AccessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"uploadId\": \"{{uploadId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{apiHost}}/api/files/chunk/merge",
+              "host": [
+                "{{apiHost}}"
+              ],
+              "path": [
+                "api",
+                "files",
+                "chunk",
+                "merge"
+              ]
+            },
+            "description": "合并所有已上传的分块为完整文件"
+          },
+          "response": []
+        },
+        {
+          "name": "恢复上传",
+          "id": "resumeUpload",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{AccessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{apiHost}}/api/files/chunk/resume/:uploadId",
+              "host": [
+                "{{apiHost}}"
+              ],
+              "path": [
+                "api",
+                "files",
+                "chunk",
+                "resume",
+                ":uploadId"
+              ],
+              "variable": [
+                {
+                  "key": "uploadId"
+                }
+              ]
+            },
+            "description": "查询已上传的分块信息，用于断点续传"
+          },
+          "response": []
+        },
+        {
+          "name": "查看上传进度",
+          "id": "getUploadProgress",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{AccessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{apiHost}}/api/files/chunk/progress/:uploadId",
+              "host": [
+                "{{apiHost}}"
+              ],
+              "path": [
+                "api",
+                "files",
+                "chunk",
+                "progress",
+                ":uploadId"
+              ],
+              "variable": [
+                {
+                  "key": "uploadId"
+                }
+              ]
+            },
+            "description": "获取上传进度信息"
+          },
+          "response": []
+        },
+        {
+          "name": "取消上传",
+          "id": "cancelUpload",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{AccessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"uploadId\": \"{{uploadId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{apiHost}}/api/files/chunk/cancel",
+              "host": [
+                "{{apiHost}}"
+              ],
+              "path": [
+                "api",
+                "files",
+                "chunk",
+                "cancel"
+              ]
+            },
+            "description": "取消分块上传会话，清理已上传的分块"
+          },
+          "response": []
         }
-      },
-      "response": []
+      ],
+      "id": "948fc369-bfde-4b49-ba48-e320b0a5342b"
     }
   ],
-  "auth": {
-    "type": "bearer",
-    "bearer": [
-      {
-        "key": "token",
-        "value": "{{AccessToken}}",
-        "type": "string"
-      }
-    ]
-  },
   "variable": [
     {
-      "id": "91f1bb6a-9a79-438c-98cf-024189f2b29c",
+      "id": "devUserName",
       "key": "devUserName",
-      "value": "devUser"
+      "value": "devUser",
+      "type": "string"
     },
     {
-      "id": "606f7f28-939c-41cb-ad06-4c80734901d7",
+      "id": "devUserPassword",
       "key": "devUserPassword",
-      "value": "123abc"
+      "value": "123abc",
+      "type": "string"
     },
     {
-      "id": "4f9dff0e-88e4-4859-9dc5-b28c2ebb6f2b",
+      "id": "devUserEmail",
       "key": "devUserEmail",
-      "value": "dev@example.com"
+      "value": "dev@example.com",
+      "type": "string"
     },
     {
-      "id": "ac307b2b-10e6-485d-ae82-3e9308d09053",
+      "id": "devUserId",
       "key": "devUserId",
-      "value": "a34b4c7c-5985-4a5e-af37-9e9c444b3bb2"
+      "value": "a34b4c7c-5985-4a5e-af37-9e9c444b3bb2",
+      "type": "string"
     },
     {
-      "id": "003d6818-b120-4105-a794-dc8e9a0a49fa",
+      "id": "apiHost",
       "key": "apiHost",
-      "value": "http://localhost:8080"
+      "value": "http://localhost:8080",
+      "type": "string"
     }
   ]
 }

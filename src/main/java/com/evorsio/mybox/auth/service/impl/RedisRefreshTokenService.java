@@ -2,7 +2,7 @@ package com.evorsio.mybox.auth.service.impl;
 
 import com.evorsio.mybox.auth.service.RefreshTokenService;
 import com.evorsio.mybox.common.constants.RedisKeyConstants;
-import com.evorsio.mybox.common.properties.AuthJwtProperties;
+import com.evorsio.mybox.auth.properties.AuthJwtProperties;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;

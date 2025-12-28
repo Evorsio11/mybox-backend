@@ -1,77 +1,79 @@
 package com.evorsio.mybox.common.exception;
 
 import com.evorsio.mybox.common.error.ErrorCode;
-import com.evorsio.mybox.common.response.ErrorResponse;
+import com.evorsio.mybox.common.response.ApiResponse;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
-import java.util.Map;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
-    private static final Map<String, ErrorCode> REQUIRED_FIELD_MAP = Map.of(
-            "username", ErrorCode.USERNAME_REQUIRED,
-            "email", ErrorCode.EMAIL_REQUIRED,
-            "password", ErrorCode.PASSWORD_REQUIRED,
-            "fileId", ErrorCode.FILE_ID_REQUIRED,
-            "file", ErrorCode.FILE_REQUIRED
-    );
-    private static final Map<String, ErrorCode> FORMAT_ERROR_MAP = Map.of(
-            "username", ErrorCode.USERNAME_FORMAT_INVALID,
-            "email", ErrorCode.EMAIL_FORMAT_INVALID,
-            "password", ErrorCode.PASSWORD_FORMAT_INVALID
-    );
-
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ErrorResponse> handleValidation(MethodArgumentNotValidException e) {
-        FieldError fieldError = e.getBindingResult().getFieldError();
-        if (fieldError == null) {
-            return ResponseEntity.status(ErrorCode.VALIDATION_ERROR.getStatus())
-                    .body(new ErrorResponse(ErrorCode.VALIDATION_ERROR.getCode(),
-                            ErrorCode.VALIDATION_ERROR.getMessage()));
-        }
+    public ResponseEntity<ApiResponse<Void>> handleValidation(MethodArgumentNotValidException e) {
+        List<ApiResponse.FieldError> details = e.getBindingResult()
+                .getFieldErrors()
+                .stream()
+                .map(fieldError -> new ApiResponse.FieldError(
+                        fieldError.getField(),
+                        fieldError.getDefaultMessage()
+                ))
+                .collect(Collectors.toList());
 
-        String field = fieldError.getField();
-        String code = fieldError.getCode();
+        ApiResponse<Void> response = ApiResponse.error(
+                ErrorCode.VALIDATION_ERROR.getCode(),
+                ErrorCode.VALIDATION_ERROR.getMessage(),
+                details
+        );
 
-        ErrorCode errorCode;
-        if ("NotBlank".equals(code) || "NotNull".equals(code)) {
-            errorCode = REQUIRED_FIELD_MAP.getOrDefault(field, ErrorCode.VALIDATION_ERROR);
-        } else {
-            errorCode = FORMAT_ERROR_MAP.getOrDefault(field, ErrorCode.VALIDATION_ERROR);
-        }
-        return ResponseEntity.status(errorCode.getStatus())
-                .body(new ErrorResponse(errorCode.getCode(), errorCode.getMessage()));
+        return ResponseEntity
+                .status(ErrorCode.VALIDATION_ERROR.getStatus())
+                .body(response);
     }
 
     @ExceptionHandler(CommonException.class)
-    public ResponseEntity<ErrorResponse> handleCommon(CommonException e) {
+    public ResponseEntity<ApiResponse<Void>> handleCommon(CommonException e) {
         ErrorCode errorCode = e.getErrorCode();
-        return ResponseEntity.status(errorCode.getStatus())
-                .body(new ErrorResponse(errorCode.getCode(), e.getMessage()));
-    }
-
-    @ExceptionHandler(MaxUploadSizeExceededException.class)
-    public ResponseEntity<ErrorResponse> handleMaxUploadSizeExceeded(MaxUploadSizeExceededException ex) {
-        log.error("上传文件超出限制", ex);
-        ErrorCode errorCode = ErrorCode.FILE_TOO_LARGE;
-        ErrorResponse response = new ErrorResponse(errorCode.getCode(), errorCode.getMessage());
+        ApiResponse<Void> response = ApiResponse.error(errorCode.getCode(), e.getMessage());
         return ResponseEntity.status(errorCode.getStatus()).body(response);
     }
 
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<ApiResponse<Void>> handleMaxUploadSizeExceeded(MaxUploadSizeExceededException ex) {
+        log.error("上传文件超出限制", ex);
+        ErrorCode errorCode = ErrorCode.FILE_TOO_LARGE;
+        ApiResponse<Void> response = ApiResponse.error(errorCode.getCode(), errorCode.getMessage());
+        return ResponseEntity.status(errorCode.getStatus()).body(response);
+    }
+
+    @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
+    public ResponseEntity<ApiResponse<Void>> handleOptimisticLockingFailure(ObjectOptimisticLockingFailureException ex) {
+        log.warn("乐观锁冲突: {}", ex.getMessage());
+        // 返回友好的错误信息，提示用户重试
+        ApiResponse<Void> response = ApiResponse.error(
+                "CONFLICT",
+                "数据冲突，请稍后重试"
+        );
+        return ResponseEntity.status(409).body(response);
+    }
+
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> handleOthers(Exception e) {
+    public ResponseEntity<ApiResponse<Void>> handleOthers(Exception e) {
         log.error("系统异常:", e);
-        return ResponseEntity.status(ErrorCode.INTERNAL_ERROR.getStatus())
-                .body(new ErrorResponse(ErrorCode.INTERNAL_ERROR.getCode(), ErrorCode.INTERNAL_ERROR.getMessage()));
+        ApiResponse<Void> response = ApiResponse.error(
+                ErrorCode.INTERNAL_ERROR.getCode(),
+                ErrorCode.INTERNAL_ERROR.getMessage()
+        );
+        return ResponseEntity.status(ErrorCode.INTERNAL_ERROR.getStatus()).body(response);
     }
 }
+

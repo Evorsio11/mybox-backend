@@ -5,6 +5,6 @@ import lombok.Data;
 
 @Data
 public class RefreshRequest {
-    @NotBlank
+    @NotBlank(message = "刷新令牌不能为空")
     private String refreshToken;
 }

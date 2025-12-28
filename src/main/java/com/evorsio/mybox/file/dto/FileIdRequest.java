@@ -7,6 +7,6 @@ import java.util.UUID;
 
 @Data
 public class FileIdRequest {
-    @NotNull
+    @NotNull(message = "文件ID不能为空")
     private UUID fileId;
 }

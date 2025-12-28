@@ -4,8 +4,8 @@ import com.evorsio.mybox.common.error.ErrorCode;
 import com.evorsio.mybox.file.domain.File;
 import com.evorsio.mybox.file.domain.FileStatus;
 import com.evorsio.mybox.file.exception.FileException;
-import com.evorsio.mybox.file.properties.FileUploadProperties;
 import com.evorsio.mybox.file.repository.FileRepository;
+import com.evorsio.mybox.file.service.FileConfigService;
 import com.evorsio.mybox.file.service.FileService;
 import com.evorsio.mybox.file.service.MinioStorageService;
 import lombok.RequiredArgsConstructor;
@@ -13,10 +13,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Value;
+
 import org.springframework.stereotype.Service;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
+
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
 
@@ -30,7 +32,7 @@ import java.util.UUID;
 public class FileServiceImpl implements FileService {
     private final MinioStorageService minioStorageService;
     private final FileRepository fileRepository;
-    private final FileUploadProperties fileUploadProperties;
+    private final FileConfigService fileConfigService;
 
     @Value("${minio.bucket}")
     private String defaultBucket;
@@ -42,18 +44,38 @@ public class FileServiceImpl implements FileService {
             throw new FileException(ErrorCode.VALIDATION_ERROR);
         }
 
+        // 0. 单文件大小校验（必须）
+        if (size > fileConfigService.getMaxFileSize()) {
+            log.warn("文件过大: ownerId={}, size={}, limit={}",
+                    ownerId, size, fileConfigService.getMaxFileSize());
+            throw new FileException(ErrorCode.FILE_TOO_LARGE);
+        }
+
+        long usedSize = fileRepository.sumActiveFileSizeByOwnerId(ownerId, FileStatus.ACTIVE);
+
+        if (usedSize + size > fileConfigService.getMaxTotalStorageSize()) {
+            log.warn("存储空间不足: ownerId={}, used={}, upload={}, limit={}",
+                    ownerId, usedSize, size, fileConfigService.getMaxTotalStorageSize());
+            throw new FileException(ErrorCode.STORAGE_FULL);
+        }
+
         // 1. 校验文件后缀
         String ext = FilenameUtils.getExtension(originalFileName).toLowerCase();
-        if (!fileUploadProperties.getAllowedExtensions().contains(ext)) {
+        if (fileConfigService.isExtensionRejected(ext)) {
+            log.warn("文件扩展名不允许: {}, allowAllFileTypes={}", ext,
+                    fileConfigService.isAllowAllFileTypes());
             throw new FileException(ErrorCode.FILE_TYPE_NOT_ALLOWED);
         }
 
         // 2. 校验 MIME 类型
-        if (!fileUploadProperties.getAllowedContentTypes().contains(contentType)) {
+        if (fileConfigService.isContentTypeRejected(contentType)) {
+            log.warn("文件 MIME 类型不允许: {}, allowAllFileTypes={}", contentType,
+                    fileConfigService.isAllowAllFileTypes());
             throw new FileException(ErrorCode.FILE_TYPE_NOT_ALLOWED);
         }
 
         String objectName = UUID.randomUUID().toString();
+        String encodedFileName = URLEncoder.encode(originalFileName, StandardCharsets.UTF_8);
         try {
             // 3. 使用 DigestInputStream 边上传边计算 SHA-256
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
@@ -76,7 +98,7 @@ public class FileServiceImpl implements FileService {
             // 5. 保存数据库记录
             File file = new File();
             file.setOwnerId(ownerId);
-            file.setOriginalFileName(originalFileName);
+            file.setOriginalFileName(encodedFileName);
             file.setObjectName(objectName);
             file.setBucket(defaultBucket);
             file.setContentType(contentType);
@@ -86,7 +108,7 @@ public class FileServiceImpl implements FileService {
 
             File savedFile = fileRepository.save(file);
             log.info("文件上传成功: fileId={}, ownerId={}, fileName={}",
-                    savedFile.getId(), ownerId, savedFile.getOriginalFileName().replaceAll("\\p{Cntrl}", "_"));
+                    savedFile.getId(), ownerId, savedFile.getOriginalFileName());
 
             return savedFile;
 
@@ -99,7 +121,6 @@ public class FileServiceImpl implements FileService {
             throw new RuntimeException("文件上传失败", e);
         }
     }
-
 
     @Override
     public File getActiveFileById(UUID ownerId, UUID fileId) {
@@ -117,6 +138,32 @@ public class FileServiceImpl implements FileService {
             return inputStream;
         } catch (Exception e) {
             log.error("文件下载发生异常: ownerId={}, fileId={}, error={}", ownerId, fileId, e.getMessage(), e);
+            throw new FileException(ErrorCode.INTERNAL_ERROR);
+        }
+    }
+
+    @Override
+    public InputStream downloadPartialFile(UUID ownerId, UUID fileId, long start, long end) {
+        File file = getActiveFileById(ownerId, fileId);
+
+        try {
+            // 计算长度（end 是包含的，所以需要 +1）
+            long length = end - start + 1;
+
+            InputStream inputStream = minioStorageService.downloadPartial(
+                    file.getBucket(),
+                    file.getObjectName(),
+                    start,
+                    length
+            );
+
+            log.info("部分文件下载成功: ownerId={}, fileId={}, range={}-{}",
+                    ownerId, fileId, start, end);
+
+            return inputStream;
+        } catch (Exception e) {
+            log.error("部分文件下载发生异常: ownerId={}, fileId={}, range={}-{}, error={}",
+                    ownerId, fileId, start, end, e.getMessage(), e);
             throw new FileException(ErrorCode.INTERNAL_ERROR);
         }
     }

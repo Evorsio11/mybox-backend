@@ -1,7 +1,7 @@
 package com.evorsio.mybox.auth.util;
 
 import com.evorsio.mybox.auth.domain.TokenType;
-import com.evorsio.mybox.common.properties.AuthJwtProperties;
+import com.evorsio.mybox.auth.properties.AuthJwtProperties;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtBuilder;
 import io.jsonwebtoken.JwtException;

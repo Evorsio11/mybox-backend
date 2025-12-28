@@ -6,6 +6,7 @@ import com.evorsio.mybox.auth.dto.RegisterRequest;
 import com.evorsio.mybox.auth.dto.TokenResponse;
 import com.evorsio.mybox.auth.service.AuthService;
 import com.evorsio.mybox.auth.util.JwtUtil;
+import com.evorsio.mybox.common.response.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -23,23 +24,26 @@ public class AuthController {
     private final JwtUtil jwtUtil;
 
     @PostMapping("/login")
-    public TokenResponse login(@Valid @RequestBody LoginRequest request) {
-        return authService.login(request.getUsername(), request.getPassword());
+    public ApiResponse<TokenResponse> login(@Valid @RequestBody LoginRequest request) {
+        TokenResponse token = authService.login(request.getUsername(), request.getPassword());
+        return ApiResponse.success("登录成功", token);
     }
 
     @PostMapping("/register")
-    public TokenResponse register(@Valid @RequestBody RegisterRequest request) {
-        return authService.register(
+    public ApiResponse<TokenResponse> register(@Valid @RequestBody RegisterRequest request) {
+        TokenResponse token = authService.register(
                 request.getUsername(),
                 request.getEmail(),
                 request.getPassword()
         );
+        return ApiResponse.success("注册成功", token);
     }
 
     @PostMapping("/refresh")
-    public TokenResponse refresh(@Valid @RequestBody RefreshRequest request) {
+    public ApiResponse<TokenResponse> refresh(@Valid @RequestBody RefreshRequest request) {
         String refreshToken = request.getRefreshToken();
         UUID userId = UUID.fromString(jwtUtil.parseToken(refreshToken).getSubject());
-        return authService.refreshToken(userId, refreshToken);
+        TokenResponse token = authService.refreshToken(userId, refreshToken);
+        return ApiResponse.success("刷新令牌成功", token);
     }
 }
