@@ -1,6 +1,6 @@
 package com.evorsio.mybox.auth.controller;
 
-import com.evorsio.mybox.api.response.ApiResponse;
+import com.evorsio.mybox.common.response.ApiResponse;
 import com.evorsio.mybox.auth.dto.LoginRequest;
 import com.evorsio.mybox.auth.dto.RefreshRequest;
 import com.evorsio.mybox.auth.dto.RegisterRequest;
@@ -25,18 +25,23 @@ public class AuthController {
 
     @PostMapping("/login")
     public ApiResponse<TokenResponse> login(@Valid @RequestBody LoginRequest request) {
-        TokenResponse token = authService.login(request.getUsername(), request.getPassword());
+        TokenResponse token = authService.login(
+                request.getUsername(),
+                request.getPassword(),
+                request.getDeviceInfo()
+        );
         return ApiResponse.success("登录成功", token);
     }
 
     @PostMapping("/register")
-    public ApiResponse<TokenResponse> register(@Valid @RequestBody RegisterRequest request) {
-        TokenResponse token = authService.register(
+    public ApiResponse<Void> register(@Valid @RequestBody RegisterRequest request) {
+        authService.register(
                 request.getUsername(),
                 request.getEmail(),
-                request.getPassword()
+                request.getPassword(),
+                request.getDeviceInfo()
         );
-        return ApiResponse.success("注册成功", token);
+        return ApiResponse.success("注册成功，请登录");
     }
 
     @PostMapping("/refresh")

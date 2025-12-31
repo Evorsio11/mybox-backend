@@ -10,7 +10,9 @@ import java.util.UUID;
 
 @Repository
 public interface DeviceRepository extends JpaRepository<Device, UUID> {
-    Optional<Device> findByUserIdAndDeviceId(UUID userId, String deviceId);
+    Optional<Device> findByUserIdAndDeviceId(UUID userId, UUID deviceId);
+
+    boolean existsByUserIdAndDeviceId(UUID userId, UUID deviceId);
 
     Optional<Device> findByDeviceToken(String deviceToken);
 

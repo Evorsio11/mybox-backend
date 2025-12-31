@@ -18,4 +18,7 @@ public class RegisterRequest {
     @NotBlank(message = "密码不能为空")
     @Pattern(regexp = "^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{6,20}$", message = "密码必须为6-20位，包含字母和数字")
     private String password;
+
+    // ===== 设备信息 =====
+    private DeviceInfoDto deviceInfo;
 }

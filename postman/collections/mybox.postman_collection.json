@@ -2,13 +2,50 @@
   "info": {
     "_postman_id": "000a6f1c-b798-4336-9c9a-76291da84ef7",
     "name": "MyBox API",
-    "description": "MyBox 云存储系统 API 接口集合",
+    "description": "MyBox 云存储系统 API 接口集合 - 基于 OpenAPI 3.1.0 自动生成",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
     {
       "name": "用户认证",
       "item": [
+        {
+          "name": "用户注册",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"username\": \"testuser\",\n    \"email\": \"test@example.com\",\n    \"password\": \"Test123\",\n    \"deviceInfo\": {\n        \"deviceId\": \"550e8400-e29b-41d4-a716-446655440000\",\n        \"deviceName\": \"Test Device\",\n        \"deviceType\": \"DESKTOP\",\n        \"osName\": \"Windows\",\n        \"osVersion\": \"10\"\n    }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "register"
+              ]
+            },
+            "description": "注册新用户"
+          },
+          "response": []
+        },
         {
           "name": "用户登录",
           "event": [
@@ -19,15 +56,19 @@
                 "exec": [
                   "if (pm.response.code === 200) {",
                   "    const response = pm.response.json();",
-                  "    pm.environment.set(\"AccessToken\", response.accessToken);",
-                  "    pm.environment.set(\"RefreshToken\", response.refreshToken);",
-                  "    console.log(\"登录成功，Token 已保存到环境变量\");",
+                  "    if (response.success && response.data) {",
+                  "        pm.environment.set(\"AccessToken\", response.data.accessToken);",
+                  "        pm.environment.set(\"RefreshToken\", response.data.refreshToken);",
+                  "        if (response.data.deviceToken) {",
+                  "            pm.environment.set(\"DeviceToken\", response.data.deviceToken);",
+                  "        }",
+                  "        console.log(\"登录成功，Token 已保存到环境变量\");",
+                  "    }",
                   "}"
                 ]
               }
             }
           ],
-          "id": "login",
           "request": {
             "auth": {
               "type": "noauth"
@@ -41,7 +82,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"username\": \"{{devUserName}}\",\n    \"password\": \"{{devUserPassword}}\"\n}",
+              "raw": "{\n    \"username\": \"{{devUserName}}\",\n    \"password\": \"{{devUserPassword}}\",\n    \"deviceInfo\": {\n        \"deviceId\": \"550e8400-e29b-41d4-a716-446655440000\",\n        \"deviceName\": \"Test Device\",\n        \"deviceType\": \"DESKTOP\",\n        \"osName\": \"Windows\",\n        \"osVersion\": \"10\"\n    }\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -49,9 +90,9 @@
               }
             },
             "url": {
-              "raw": "{{apiHost}}/api/auth/login",
+              "raw": "{{baseUrl}}/api/auth/login",
               "host": [
-                "{{apiHost}}"
+                "{{baseUrl}}"
               ],
               "path": [
                 "api",
@@ -59,51 +100,30 @@
                 "login"
               ]
             },
-            "description": "使用用户名和密码登录系统，成功后返回访问令牌"
-          },
-          "response": []
-        },
-        {
-          "name": "用户注册",
-          "id": "register",
-          "request": {
-            "auth": {
-              "type": "noauth"
-            },
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n    \"username\": \"{{devUserName}}\",\n    \"email\": \"{{devUserEmail}}\",\n    \"password\": \"{{devUserPassword}}\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{apiHost}}/api/auth/register",
-              "host": [
-                "{{apiHost}}"
-              ],
-              "path": [
-                "api",
-                "auth",
-                "register"
-              ]
-            },
-            "description": "注册新用户账号"
+            "description": "用户登录并获取访问令牌"
           },
           "response": []
         },
         {
           "name": "刷新令牌",
-          "id": "refresh",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.success && response.data) {",
+                  "        pm.environment.set(\"AccessToken\", response.data.accessToken);",
+                  "        pm.environment.set(\"RefreshToken\", response.data.refreshToken);",
+                  "        console.log(\"令牌刷新成功\");",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
           "request": {
             "auth": {
               "type": "noauth"
@@ -117,7 +137,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"refreshToken\": \"{{RefreshToken}}\"\n}",
+              "raw": "{\n    \"refreshToken\": \"{{RefreshToken}}\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -125,9 +145,9 @@
               }
             },
             "url": {
-              "raw": "{{apiHost}}/api/auth/refresh",
+              "raw": "{{baseUrl}}/api/auth/refresh",
               "host": [
-                "{{apiHost}}"
+                "{{baseUrl}}"
               ],
               "path": [
                 "api",
@@ -140,14 +160,13 @@
           "response": []
         }
       ],
-      "id": "d3a430d0-b6d6-4b9f-a71c-0464a219b92d"
+      "description": "用户认证相关接口"
     },
     {
-      "name": "用户信息",
+      "name": "用户管理",
       "item": [
         {
           "name": "获取当前用户信息",
-          "id": "getCurrentUser",
           "request": {
             "auth": {
               "type": "bearer",
@@ -162,9 +181,9 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{apiHost}}/api/users/me",
+              "raw": "{{baseUrl}}/api/users/me",
               "host": [
-                "{{apiHost}}"
+                "{{baseUrl}}"
               ],
               "path": [
                 "api",
@@ -172,19 +191,77 @@
                 "me"
               ]
             },
-            "description": "获取当前登录用户的个人信息"
+            "description": "获取当前登录用户的详细信息"
           },
           "response": []
         }
       ],
-      "id": "bd7ac108-8963-4ef3-bcac-800161219080"
+      "description": "用户管理相关接口"
     },
     {
       "name": "文件管理",
       "item": [
         {
+          "name": "列出文件",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{AccessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/files",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "files"
+              ]
+            },
+            "description": "获取当前用户的文件列表"
+          },
+          "response": []
+        },
+        {
+          "name": "列出已删除文件",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{AccessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/files/deleted",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "files",
+                "deleted"
+              ]
+            },
+            "description": "获取已删除的文件列表"
+          },
+          "response": []
+        },
+        {
           "name": "上传文件",
-          "id": "uploadFile",
           "request": {
             "auth": {
               "type": "bearer",
@@ -204,17 +281,14 @@
                 {
                   "key": "files",
                   "type": "file",
-                  "description": "要上传的文件（可多选）",
-                  "src": [
-                    "/C:/Users/Lenovo/Desktop/mybox/postman/files/file_example_MP3_700KB.mp3"
-                  ]
+                  "src": []
                 }
               ]
             },
             "url": {
-              "raw": "{{apiHost}}/api/files/upload",
+              "raw": "{{baseUrl}}/api/files/upload",
               "host": [
-                "{{apiHost}}"
+                "{{baseUrl}}"
               ],
               "path": [
                 "api",
@@ -222,13 +296,12 @@
                 "upload"
               ]
             },
-            "description": "上传文件到系统（支持多文件上传）"
+            "description": "上传一个或多个文件"
           },
           "response": []
         },
         {
           "name": "下载文件",
-          "id": "downloadFile",
           "request": {
             "auth": {
               "type": "bearer",
@@ -249,7 +322,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"fileId\": \"{{fileId}}\"\n}",
+              "raw": "{\n    \"fileId\": \"{{fileId}}\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -257,9 +330,9 @@
               }
             },
             "url": {
-              "raw": "{{apiHost}}/api/files/download",
+              "raw": "{{baseUrl}}/api/files/download",
               "host": [
-                "{{apiHost}}"
+                "{{baseUrl}}"
               ],
               "path": [
                 "api",
@@ -267,13 +340,12 @@
                 "download"
               ]
             },
-            "description": "根据文件ID下载文件"
+            "description": "下载指定文件"
           },
           "response": []
         },
         {
           "name": "删除文件",
-          "id": "deleteFile",
           "request": {
             "auth": {
               "type": "bearer",
@@ -294,7 +366,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"fileId\": \"{{fileId}}\"\n}",
+              "raw": "{\n    \"fileId\": \"{{fileId}}\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -302,9 +374,9 @@
               }
             },
             "url": {
-              "raw": "{{apiHost}}/api/files/delete",
+              "raw": "{{baseUrl}}/api/files/delete",
               "host": [
-                "{{apiHost}}"
+                "{{baseUrl}}"
               ],
               "path": [
                 "api",
@@ -312,13 +384,12 @@
                 "delete"
               ]
             },
-            "description": "将文件移至回收站（软删除）"
+            "description": "删除指定文件（软删除）"
           },
           "response": []
         },
         {
           "name": "恢复文件",
-          "id": "restoreFile",
           "request": {
             "auth": {
               "type": "bearer",
@@ -339,7 +410,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"fileId\": \"{{fileId}}\"\n}",
+              "raw": "{\n    \"fileId\": \"{{fileId}}\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -347,9 +418,9 @@
               }
             },
             "url": {
-              "raw": "{{apiHost}}/api/files/restore",
+              "raw": "{{baseUrl}}/api/files/restore",
               "host": [
-                "{{apiHost}}"
+                "{{baseUrl}}"
               ],
               "path": [
                 "api",
@@ -357,13 +428,12 @@
                 "restore"
               ]
             },
-            "description": "从回收站恢复已删除的文件"
+            "description": "恢复已删除的文件"
           },
           "response": []
         },
         {
-          "name": "列出所有文件",
-          "id": "listFiles",
+          "name": "获取文件配置",
           "request": {
             "auth": {
               "type": "bearer",
@@ -378,70 +448,72 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{apiHost}}/api/files?ownerId={{devUserId}}",
+              "raw": "{{baseUrl}}/api/files/config",
               "host": [
-                "{{apiHost}}"
-              ],
-              "path": [
-                "api",
-                "files"
-              ],
-              "query": [
-                {
-                  "key": "ownerId",
-                  "value": "{{devUserId}}"
-                }
-              ]
-            },
-            "description": "获取用户的所有文件列表（不包括已删除文件）"
-          },
-          "response": []
-        },
-        {
-          "name": "列出已删除文件",
-          "id": "listDeletedFiles",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{AccessToken}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{apiHost}}/api/files/deleted?ownerId={{devUserId}}",
-              "host": [
-                "{{apiHost}}"
+                "{{baseUrl}}"
               ],
               "path": [
                 "api",
                 "files",
-                "deleted"
-              ],
-              "query": [
+                "config"
+              ]
+            },
+            "description": "获取文件系统配置（所有认证用户可访问）"
+          },
+          "response": []
+        },
+        {
+          "name": "更新文件配置",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
                 {
-                  "key": "ownerId",
-                  "value": "{{devUserId}}"
+                  "key": "token",
+                  "value": "{{AccessToken}}",
+                  "type": "string"
                 }
               ]
             },
-            "description": "获取回收站中的文件列表"
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"storage\": {\n        \"maxFileSizeBytes\": 104857600,\n        \"maxTotalSizeBytes\": 1073741824,\n        \"retentionDays\": 30,\n        \"tempDir\": \"/tmp/mybox\"\n    },\n    \"upload\": {\n        \"types\": {\n            \"allowAll\": false,\n            \"allowedExtensions\": [\"jpg\", \"png\", \"pdf\", \"doc\", \"docx\"],\n            \"allowedContentTypes\": [\"image/jpeg\", \"image/png\", \"application/pdf\"]\n        },\n        \"chunk\": {\n            \"enabled\": true,\n            \"minSizeBytes\": 10485760,\n            \"chunkSizeBytes\": 5242880,\n            \"enableConcurrent\": true,\n            \"maxConcurrent\": 3,\n            \"enableDeduplication\": true,\n            \"deduplicationStrategy\": \"SHA256\",\n            \"sessionTimeoutHours\": 24,\n            \"maxRetry\": 3,\n            \"retryDelaySeconds\": 1,\n            \"cleanupExpired\": true,\n            \"cleanupIntervalHours\": 1\n        }\n    },\n    \"download\": {\n        \"enableRateLimit\": false,\n        \"maxBytesPerSecondBytes\": 0\n    }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/files/config",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "files",
+                "config"
+              ]
+            },
+            "description": "更新文件系统配置（仅 ADMIN 用户可访问）"
           },
           "response": []
         }
       ],
-      "id": "0fffc4cb-1d8c-4221-b1a7-22aa8e9f55e7"
+      "description": "文件管理相关接口"
     },
     {
-      "name": "分块上传",
+      "name": "分片上传",
       "item": [
         {
-          "name": "初始化上传",
+          "name": "初始化分片上传",
           "event": [
             {
               "listen": "test",
@@ -450,16 +522,17 @@
                 "exec": [
                   "if (pm.response.code === 200) {",
                   "    const response = pm.response.json();",
-                  "    pm.environment.set(\"uploadId\", response.uploadId);",
-                  "    pm.environment.set(\"chunkSize\", response.chunkSize);",
-                  "    pm.environment.set(\"totalChunks\", response.totalChunks);",
-                  "    console.log(\"初始化上传成功，uploadId:\", response.uploadId);",
+                  "    if (response.success && response.data) {",
+                  "        pm.environment.set(\"uploadId\", response.data.uploadId);",
+                  "        pm.environment.set(\"chunkSize\", response.data.chunkSize);",
+                  "        pm.environment.set(\"totalChunks\", response.data.totalChunks);",
+                  "        console.log(\"上传初始化成功，uploadId:\", response.data.uploadId);",
+                  "    }",
                   "}"
                 ]
               }
             }
           ],
-          "id": "initChunkUpload",
           "request": {
             "auth": {
               "type": "bearer",
@@ -480,7 +553,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"originalFileName\": \"large-file.zip\",\n  \"fileSize\": 10485760,\n  \"contentType\": \"application/zip\"\n}",
+              "raw": "{\n    \"originalFileName\": \"large-file.zip\",\n    \"fileSize\": 52428800,\n    \"contentType\": \"application/zip\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -488,9 +561,9 @@
               }
             },
             "url": {
-              "raw": "{{apiHost}}/api/files/chunk/init",
+              "raw": "{{baseUrl}}/api/files/chunk/init",
               "host": [
-                "{{apiHost}}"
+                "{{baseUrl}}"
               ],
               "path": [
                 "api",
@@ -499,13 +572,12 @@
                 "init"
               ]
             },
-            "description": "初始化分块上传会话，返回 uploadId 和分块信息"
+            "description": "初始化分片上传会话"
           },
           "response": []
         },
         {
-          "name": "上传分块",
-          "id": "uploadChunk",
+          "name": "上传分片",
           "request": {
             "auth": {
               "type": "bearer",
@@ -535,16 +607,14 @@
                 {
                   "key": "file",
                   "type": "file",
-                  "src": [
-                    "/C:/Users/Lenovo/Desktop/mybox/postman/files/zip_2MB.zip"
-                  ]
+                  "src": []
                 }
               ]
             },
             "url": {
-              "raw": "{{apiHost}}/api/files/chunk/upload",
+              "raw": "{{baseUrl}}/api/files/chunk/upload",
               "host": [
-                "{{apiHost}}"
+                "{{baseUrl}}"
               ],
               "path": [
                 "api",
@@ -553,13 +623,12 @@
                 "upload"
               ]
             },
-            "description": "上传单个文件分块"
+            "description": "上传单个文件分片"
           },
           "response": []
         },
         {
-          "name": "合并分块",
-          "id": "mergeChunks",
+          "name": "合并分片",
           "request": {
             "auth": {
               "type": "bearer",
@@ -580,7 +649,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"uploadId\": \"{{uploadId}}\"\n}",
+              "raw": "{\n    \"uploadId\": \"{{uploadId}}\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -588,9 +657,9 @@
               }
             },
             "url": {
-              "raw": "{{apiHost}}/api/files/chunk/merge",
+              "raw": "{{baseUrl}}/api/files/chunk/merge",
               "host": [
-                "{{apiHost}}"
+                "{{baseUrl}}"
               ],
               "path": [
                 "api",
@@ -599,13 +668,12 @@
                 "merge"
               ]
             },
-            "description": "合并所有已上传的分块为完整文件"
+            "description": "合并所有已上传的分片"
           },
           "response": []
         },
         {
           "name": "恢复上传",
-          "id": "resumeUpload",
           "request": {
             "auth": {
               "type": "bearer",
@@ -620,30 +688,24 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{apiHost}}/api/files/chunk/resume/:uploadId",
+              "raw": "{{baseUrl}}/api/files/chunk/resume/{{uploadId}}",
               "host": [
-                "{{apiHost}}"
+                "{{baseUrl}}"
               ],
               "path": [
                 "api",
                 "files",
                 "chunk",
                 "resume",
-                ":uploadId"
-              ],
-              "variable": [
-                {
-                  "key": "uploadId"
-                }
+                "{{uploadId}}"
               ]
             },
-            "description": "查询已上传的分块信息，用于断点续传"
+            "description": "获取上传进度，用于恢复中断的上传"
           },
           "response": []
         },
         {
-          "name": "查看上传进度",
-          "id": "getUploadProgress",
+          "name": "获取上传进度",
           "request": {
             "auth": {
               "type": "bearer",
@@ -658,30 +720,24 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{apiHost}}/api/files/chunk/progress/:uploadId",
+              "raw": "{{baseUrl}}/api/files/chunk/progress/{{uploadId}}",
               "host": [
-                "{{apiHost}}"
+                "{{baseUrl}}"
               ],
               "path": [
                 "api",
                 "files",
                 "chunk",
                 "progress",
-                ":uploadId"
-              ],
-              "variable": [
-                {
-                  "key": "uploadId"
-                }
+                "{{uploadId}}"
               ]
             },
-            "description": "获取上传进度信息"
+            "description": "获取当前上传进度"
           },
           "response": []
         },
         {
           "name": "取消上传",
-          "id": "cancelUpload",
           "request": {
             "auth": {
               "type": "bearer",
@@ -702,7 +758,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"uploadId\": \"{{uploadId}}\"\n}",
+              "raw": "{\n    \"uploadId\": \"{{uploadId}}\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -710,9 +766,9 @@
               }
             },
             "url": {
-              "raw": "{{apiHost}}/api/files/chunk/cancel",
+              "raw": "{{baseUrl}}/api/files/chunk/cancel",
               "host": [
-                "{{apiHost}}"
+                "{{baseUrl}}"
               ],
               "path": [
                 "api",
@@ -721,42 +777,17 @@
                 "cancel"
               ]
             },
-            "description": "取消分块上传会话，清理已上传的分块"
+            "description": "取消分片上传会话"
           },
           "response": []
         }
       ],
-      "id": "948fc369-bfde-4b49-ba48-e320b0a5342b"
+      "description": "分片上传相关接口"
     }
   ],
   "variable": [
     {
-      "id": "devUserName",
-      "key": "devUserName",
-      "value": "devUser",
-      "type": "string"
-    },
-    {
-      "id": "devUserPassword",
-      "key": "devUserPassword",
-      "value": "123abc",
-      "type": "string"
-    },
-    {
-      "id": "devUserEmail",
-      "key": "devUserEmail",
-      "value": "dev@example.com",
-      "type": "string"
-    },
-    {
-      "id": "devUserId",
-      "key": "devUserId",
-      "value": "a34b4c7c-5985-4a5e-af37-9e9c444b3bb2",
-      "type": "string"
-    },
-    {
-      "id": "apiHost",
-      "key": "apiHost",
+      "key": "baseUrl",
       "value": "http://localhost:8080",
       "type": "string"
     }

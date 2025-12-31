@@ -1,5 +1,6 @@
 package com.evorsio.mybox.auth.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -10,4 +11,6 @@ public class TokenResponse {
     private String tokenType;
     private long expiresIn;
     private String refreshToken;
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private String deviceToken;
 }

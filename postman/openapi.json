@@ -304,7 +304,7 @@
             "content": {
               "*/*": {
                 "schema": {
-                  "$ref": "#/components/schemas/ApiResponseTokenResponse"
+                  "$ref": "#/components/schemas/ApiResponseVoid"
                 }
               }
             }
@@ -527,26 +527,26 @@
   },
   "components": {
     "schemas": {
-      "ChunkUploadConfigUpdate": {
+      "ChunkConfigUpdate": {
         "type": "object",
         "properties": {
           "enabled": {
             "type": "boolean"
           },
-          "minSize": {
+          "minSizeBytes": {
             "type": "integer",
             "format": "int64",
             "minimum": 1
           },
-          "chunkSize": {
+          "chunkSizeBytes": {
             "type": "integer",
             "format": "int64",
             "minimum": 1
           },
-          "enableConcurrentUpload": {
+          "enableConcurrent": {
             "type": "boolean"
           },
-          "maxConcurrentUploads": {
+          "maxConcurrent": {
             "type": "integer",
             "format": "int32",
             "minimum": 1
@@ -562,7 +562,7 @@
             "format": "int32",
             "minimum": 1
           },
-          "maxRetryCount": {
+          "maxRetry": {
             "type": "integer",
             "format": "int32",
             "minimum": 0
@@ -572,7 +572,7 @@
             "format": "int32",
             "minimum": 0
           },
-          "cleanupExpiredSessions": {
+          "cleanupExpired": {
             "type": "boolean"
           },
           "cleanupIntervalHours": {
@@ -582,16 +582,16 @@
           }
         },
         "required": [
-          "chunkSize",
-          "cleanupExpiredSessions",
+          "chunkSizeBytes",
+          "cleanupExpired",
           "cleanupIntervalHours",
           "deduplicationStrategy",
-          "enableConcurrentUpload",
+          "enableConcurrent",
           "enableDeduplication",
           "enabled",
-          "maxConcurrentUploads",
-          "maxRetryCount",
-          "minSize",
+          "maxConcurrent",
+          "maxRetry",
+          "minSizeBytes",
           "retryDelaySeconds",
           "sessionTimeoutHours"
         ]
@@ -602,7 +602,7 @@
           "enableRateLimit": {
             "type": "boolean"
           },
-          "maxBytesPerSecond": {
+          "maxBytesPerSecondBytes": {
             "type": "integer",
             "format": "int64",
             "minimum": 0
@@ -610,23 +610,61 @@
         },
         "required": [
           "enableRateLimit",
-          "maxBytesPerSecond"
+          "maxBytesPerSecondBytes"
         ]
       },
       "FileConfigUpdateRequest": {
         "type": "object",
         "properties": {
-          "maxFileSize": {
+          "storage": {
+            "$ref": "#/components/schemas/StorageConfigUpdate"
+          },
+          "upload": {
+            "$ref": "#/components/schemas/UploadConfigUpdate"
+          },
+          "download": {
+            "$ref": "#/components/schemas/DownloadConfigUpdate"
+          }
+        },
+        "required": [
+          "download",
+          "storage",
+          "upload"
+        ]
+      },
+      "StorageConfigUpdate": {
+        "type": "object",
+        "properties": {
+          "tempDir": {
+            "type": "string"
+          },
+          "maxFileSizeBytes": {
             "type": "integer",
             "format": "int64",
             "minimum": 1
           },
-          "maxTotalStorageSize": {
+          "maxTotalSizeBytes": {
             "type": "integer",
             "format": "int64",
             "minimum": 1
           },
-          "allowAllFileTypes": {
+          "retentionDays": {
+            "type": "integer",
+            "format": "int32",
+            "minimum": 1
+          }
+        },
+        "required": [
+          "maxFileSizeBytes",
+          "maxTotalSizeBytes",
+          "retentionDays",
+          "tempDir"
+        ]
+      },
+      "TypesConfigUpdate": {
+        "type": "object",
+        "properties": {
+          "allowAll": {
             "type": "boolean"
           },
           "allowedExtensions": {
@@ -640,28 +678,27 @@
             "items": {
               "type": "string"
             }
-          },
-          "retentionDays": {
-            "type": "integer",
-            "format": "int32",
-            "minimum": 1
-          },
-          "chunkUpload": {
-            "$ref": "#/components/schemas/ChunkUploadConfigUpdate"
-          },
-          "download": {
-            "$ref": "#/components/schemas/DownloadConfigUpdate"
           }
         },
         "required": [
-          "allowAllFileTypes",
+          "allowAll",
           "allowedContentTypes",
-          "allowedExtensions",
-          "chunkUpload",
-          "download",
-          "maxFileSize",
-          "maxTotalStorageSize",
-          "retentionDays"
+          "allowedExtensions"
+        ]
+      },
+      "UploadConfigUpdate": {
+        "type": "object",
+        "properties": {
+          "types": {
+            "$ref": "#/components/schemas/TypesConfigUpdate"
+          },
+          "chunk": {
+            "$ref": "#/components/schemas/ChunkConfigUpdate"
+          }
+        },
+        "required": [
+          "chunk",
+          "types"
         ]
       },
       "ApiResponseVoid": {
@@ -944,6 +981,32 @@
           }
         }
       },
+      "DeviceInfoDto": {
+        "type": "object",
+        "properties": {
+          "deviceId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "deviceName": {
+            "type": "string"
+          },
+          "deviceType": {
+            "type": "string"
+          },
+          "osName": {
+            "type": "string"
+          },
+          "osVersion": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "deviceId",
+          "deviceName",
+          "deviceType"
+        ]
+      },
       "RegisterRequest": {
         "type": "object",
         "properties": {
@@ -957,12 +1020,26 @@
           "password": {
             "type": "string",
             "pattern": "^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{6,20}$"
+          },
+          "deviceInfo": {
+            "$ref": "#/components/schemas/DeviceInfoDto"
           }
         },
         "required": [
           "email",
           "password",
           "username"
+        ]
+      },
+      "RefreshRequest": {
+        "type": "object",
+        "properties": {
+          "refreshToken": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "refreshToken"
         ]
       },
       "ApiResponseTokenResponse": {
@@ -1004,19 +1081,11 @@
           },
           "refreshToken": {
             "type": "string"
-          }
-        }
-      },
-      "RefreshRequest": {
-        "type": "object",
-        "properties": {
-          "refreshToken": {
+          },
+          "deviceToken": {
             "type": "string"
           }
-        },
-        "required": [
-          "refreshToken"
-        ]
+        }
       },
       "LoginRequest": {
         "type": "object",
@@ -1026,6 +1095,9 @@
           },
           "password": {
             "type": "string"
+          },
+          "deviceInfo": {
+            "$ref": "#/components/schemas/DeviceInfoDto"
           }
         },
         "required": [
@@ -1181,24 +1253,30 @@
           }
         }
       },
-      "ChunkUploadConfig": {
+      "ChunkConfig": {
         "type": "object",
         "properties": {
           "enabled": {
             "type": "boolean"
           },
           "minSize": {
+            "type": "string"
+          },
+          "minSizeBytes": {
             "type": "integer",
             "format": "int64"
           },
           "chunkSize": {
+            "type": "string"
+          },
+          "chunkSizeBytes": {
             "type": "integer",
             "format": "int64"
           },
-          "enableConcurrentUpload": {
+          "enableConcurrent": {
             "type": "boolean"
           },
-          "maxConcurrentUploads": {
+          "maxConcurrent": {
             "type": "integer",
             "format": "int32"
           },
@@ -1208,20 +1286,29 @@
           "deduplicationStrategy": {
             "type": "string"
           },
+          "sessionTimeout": {
+            "type": "string"
+          },
           "sessionTimeoutHours": {
             "type": "integer",
             "format": "int32"
           },
-          "maxRetryCount": {
+          "maxRetry": {
             "type": "integer",
             "format": "int32"
+          },
+          "retryDelay": {
+            "type": "string"
           },
           "retryDelaySeconds": {
             "type": "integer",
             "format": "int32"
           },
-          "cleanupExpiredSessions": {
+          "cleanupExpired": {
             "type": "boolean"
+          },
+          "cleanupInterval": {
+            "type": "string"
           },
           "cleanupIntervalHours": {
             "type": "integer",
@@ -1236,6 +1323,9 @@
             "type": "boolean"
           },
           "maxBytesPerSecond": {
+            "type": "string"
+          },
+          "maxBytesPerSecondBytes": {
             "type": "integer",
             "format": "int64"
           }
@@ -1244,22 +1334,51 @@
       "FileConfigResponse": {
         "type": "object",
         "properties": {
+          "storage": {
+            "$ref": "#/components/schemas/StorageConfig"
+          },
+          "upload": {
+            "$ref": "#/components/schemas/UploadConfig"
+          },
+          "download": {
+            "$ref": "#/components/schemas/DownloadConfig"
+          }
+        }
+      },
+      "StorageConfig": {
+        "type": "object",
+        "properties": {
+          "tempDir": {
+            "type": "string"
+          },
           "maxFileSize": {
+            "type": "string"
+          },
+          "maxFileSizeBytes": {
             "type": "integer",
             "format": "int64"
           },
-          "maxTotalStorageSize": {
+          "maxTotalSize": {
+            "type": "string"
+          },
+          "maxTotalSizeBytes": {
             "type": "integer",
             "format": "int64"
           },
-          "allowAllFileTypes": {
+          "retention": {
+            "type": "string"
+          },
+          "retentionDays": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "TypesConfig": {
+        "type": "object",
+        "properties": {
+          "allowAll": {
             "type": "boolean"
-          },
-          "allowedExtensions": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
           },
           "allowedContentTypes": {
             "type": "array",
@@ -1267,15 +1386,22 @@
               "type": "string"
             }
           },
-          "retentionDays": {
-            "type": "integer",
-            "format": "int32"
+          "allowedExtensions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "UploadConfig": {
+        "type": "object",
+        "properties": {
+          "types": {
+            "$ref": "#/components/schemas/TypesConfig"
           },
-          "chunkUpload": {
-            "$ref": "#/components/schemas/ChunkUploadConfig"
-          },
-          "download": {
-            "$ref": "#/components/schemas/DownloadConfig"
+          "chunk": {
+            "$ref": "#/components/schemas/ChunkConfig"
           }
         }
       },

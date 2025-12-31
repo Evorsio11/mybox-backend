@@ -8,6 +8,8 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Comment;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 @Data
@@ -32,7 +34,7 @@ public class Device {
 
     @Column(nullable = false, unique = true)
     @Comment("设备唯一标识（UUID，客户端生成）")
-    private String deviceId;
+    private UUID deviceId;
 
     @Column(nullable = false)
     @Comment("设备名称")
@@ -97,9 +99,11 @@ public class Device {
     // ========== 设备角色与权限 ==========
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    @Comment("设备角色：PRIMARY / SECONDARY / READ_ONLY")
-    private DeviceRole deviceRole = DeviceRole.SECONDARY;
+    @Comment("设备权限：READ/WRITE/SYNC")
+    private Set<DevicePermission> permissions = new HashSet<>(Set.of(
+            DevicePermission.READ,
+            DevicePermission.WRITE
+    ));
 
     @Column(nullable = false)
     @Comment("是否允许同步文件到此设备")
@@ -144,27 +148,6 @@ public class Device {
     public void prePersist(){
         createdAt = LocalDateTime.now();
         updatedAt = LocalDateTime.now();
-        if(onlineStatus == null){
-            onlineStatus = OnlineStatus.OFFLINE;
-        }
-        if(syncStatus == null){
-            syncStatus = SyncStatus.SYNCED;
-        }
-        if(isPrimary == null){
-            isPrimary = false;
-        }
-        if(deviceRole == null){
-            deviceRole = DeviceRole.SECONDARY;
-        }
-        if(allowSync == null){
-            allowSync = true;
-        }
-        if(allowUpload == null){
-            allowUpload = true;
-        }
-        if(storageUsed == null){
-            storageUsed = 0L;
-        }
     }
 
     @PreUpdate

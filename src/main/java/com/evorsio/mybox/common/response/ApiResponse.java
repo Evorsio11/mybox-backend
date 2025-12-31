@@ -1,4 +1,4 @@
-package com.evorsio.mybox.api.response;
+package com.evorsio.mybox.common.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
@@ -16,7 +16,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@NamedInterface("api") // 标记为命名接口，允许跨模块访问
+@NamedInterface("common.response") // 标记为命名接口，允许跨模块访问
 public class ApiResponse<T> {
     private boolean success;
     private String code;

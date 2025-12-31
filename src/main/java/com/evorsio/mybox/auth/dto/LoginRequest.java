@@ -10,4 +10,7 @@ public class LoginRequest {
 
     @NotBlank(message = "密码不能为空")
     private String password;
+
+    // ===== 设备信息 =====
+    private DeviceInfoDto deviceInfo;
 }

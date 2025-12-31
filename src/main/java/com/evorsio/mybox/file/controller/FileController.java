@@ -1,6 +1,6 @@
 package com.evorsio.mybox.file.controller;
 
-import com.evorsio.mybox.api.response.ApiResponse;
+import com.evorsio.mybox.common.response.ApiResponse;
 import com.evorsio.mybox.file.domain.File;
 import com.evorsio.mybox.file.dto.FileIdRequest;
 import com.evorsio.mybox.file.dto.FileUploadResponse;

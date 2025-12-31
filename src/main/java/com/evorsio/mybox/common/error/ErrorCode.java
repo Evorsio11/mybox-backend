@@ -1,4 +1,4 @@
-package com.evorsio.mybox.api.error;
+package com.evorsio.mybox.common.error;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -7,14 +7,10 @@ import org.springframework.modulith.NamedInterface;
 
 /**
  * 统一错误码枚举
- * <p>
- * 此类位于 api 模块中，可被所有其他模块（auth、device、file等）访问
- * 符合 Spring Modulith 的模块化设计原则
- * </p>
  */
 @Getter
 @AllArgsConstructor
-@NamedInterface("api") // 标记为命名接口，允许跨模块访问
+@NamedInterface("common.error") // 标记为命名接口，允许跨模块访问
 public enum ErrorCode {
 
     // Auth 1000
@@ -22,6 +18,10 @@ public enum ErrorCode {
     EMAIL_ALREADY_EXISTS("AUTH_1002", "邮箱已存在", HttpStatus.CONFLICT),
     USER_NOT_FOUND("AUTH_1003", "用户未找到", HttpStatus.NOT_FOUND),
     INVALID_CREDENTIALS("AUTH_1004", "用户凭据错误", HttpStatus.UNAUTHORIZED),
+
+    // 设备 1500
+    DEVICE_FINGERPRINT_MISMATCH("DEVICE_1501", "设备信息验证失败，请重新登录", HttpStatus.FORBIDDEN),
+    DEVICE_NOT_FOUND("DEVICE_1502", "设备未找到", HttpStatus.NOT_FOUND),
 
     // 参数校验 1100
     VALIDATION_ERROR("AUTH_1100", "参数校验失败", HttpStatus.BAD_REQUEST),
