@@ -1,6 +1,6 @@
 package com.evorsio.mybox.file.service.impl;
 
-import com.evorsio.mybox.common.error.ErrorCode;
+import com.evorsio.mybox.api.error.ErrorCode;
 import com.evorsio.mybox.file.domain.*;
 import com.evorsio.mybox.file.dto.ChunkInitRequest;
 import com.evorsio.mybox.file.dto.ChunkInitResponse;

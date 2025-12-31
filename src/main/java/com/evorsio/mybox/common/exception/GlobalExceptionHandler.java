@@ -1,7 +1,7 @@
 package com.evorsio.mybox.common.exception;
 
-import com.evorsio.mybox.common.error.ErrorCode;
-import com.evorsio.mybox.common.response.ApiResponse;
+import com.evorsio.mybox.api.error.ErrorCode;
+import com.evorsio.mybox.api.response.ApiResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;

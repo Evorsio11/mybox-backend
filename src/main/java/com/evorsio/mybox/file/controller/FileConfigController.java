@@ -1,7 +1,7 @@
 package com.evorsio.mybox.file.controller;
 
+import com.evorsio.mybox.api.response.ApiResponse;
 import com.evorsio.mybox.auth.domain.UserRole;
-import com.evorsio.mybox.common.response.ApiResponse;
 import com.evorsio.mybox.file.dto.FileConfigResponse;
 import com.evorsio.mybox.file.dto.FileConfigUpdateRequest;
 import com.evorsio.mybox.file.service.FileConfigService;

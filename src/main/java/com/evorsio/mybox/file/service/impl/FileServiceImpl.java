@@ -1,6 +1,6 @@
 package com.evorsio.mybox.file.service.impl;
 
-import com.evorsio.mybox.common.error.ErrorCode;
+import com.evorsio.mybox.api.error.ErrorCode;
 import com.evorsio.mybox.file.domain.File;
 import com.evorsio.mybox.file.domain.FileStatus;
 import com.evorsio.mybox.file.exception.FileException;

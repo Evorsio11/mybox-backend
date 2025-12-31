@@ -1,6 +1,6 @@
 package com.evorsio.mybox.file.controller;
 
-import com.evorsio.mybox.common.response.ApiResponse;
+import com.evorsio.mybox.api.response.ApiResponse;
 import com.evorsio.mybox.file.dto.*;
 import com.evorsio.mybox.file.service.ChunkUploadService;
 import jakarta.validation.Valid;

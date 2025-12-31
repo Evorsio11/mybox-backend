@@ -1,6 +1,6 @@
 package com.evorsio.mybox.common.exception;
 
-import com.evorsio.mybox.common.error.ErrorCode;
+import com.evorsio.mybox.api.error.ErrorCode;
 import lombok.Getter;
 
 @Getter

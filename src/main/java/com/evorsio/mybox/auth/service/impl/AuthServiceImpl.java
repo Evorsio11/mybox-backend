@@ -1,12 +1,12 @@
 package com.evorsio.mybox.auth.service.impl;
 
+import com.evorsio.mybox.api.error.ErrorCode;
 import com.evorsio.mybox.auth.domain.TokenType;
 import com.evorsio.mybox.auth.domain.User;
 import com.evorsio.mybox.auth.domain.UserRole;
 import com.evorsio.mybox.auth.dto.TokenResponse;
 import com.evorsio.mybox.auth.exception.AuthException;
 import com.evorsio.mybox.auth.repository.AuthRepository;
-import com.evorsio.mybox.common.error.ErrorCode;
 import com.evorsio.mybox.auth.service.AuthService;
 import com.evorsio.mybox.auth.service.RefreshTokenService;
 import com.evorsio.mybox.auth.util.JwtClaimsBuilder;

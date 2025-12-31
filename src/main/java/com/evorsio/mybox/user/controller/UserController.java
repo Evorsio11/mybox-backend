@@ -1,6 +1,6 @@
 package com.evorsio.mybox.user.controller;
 
-import com.evorsio.mybox.common.response.ApiResponse;
+import com.evorsio.mybox.api.response.ApiResponse;
 import com.evorsio.mybox.user.dto.UserInfoResponse;
 import com.evorsio.mybox.user.service.UserService;
 import lombok.RequiredArgsConstructor;

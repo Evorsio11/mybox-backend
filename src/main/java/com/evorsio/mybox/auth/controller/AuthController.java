@@ -1,12 +1,12 @@
 package com.evorsio.mybox.auth.controller;
 
+import com.evorsio.mybox.api.response.ApiResponse;
 import com.evorsio.mybox.auth.dto.LoginRequest;
 import com.evorsio.mybox.auth.dto.RefreshRequest;
 import com.evorsio.mybox.auth.dto.RegisterRequest;
 import com.evorsio.mybox.auth.dto.TokenResponse;
 import com.evorsio.mybox.auth.service.AuthService;
 import com.evorsio.mybox.auth.util.JwtUtil;
-import com.evorsio.mybox.common.response.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
