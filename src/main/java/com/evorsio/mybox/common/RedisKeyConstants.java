@@ -9,6 +9,8 @@ public class RedisKeyConstants {
 
     // Redis 类型名
     public static final String REDIS_REFRESH_TOKEN = "refreshToken";
+    public static final String REDIS_HEARTBEAT = "heartbeat";
+    public static final String REDIS_ONLINE_STATUS = "onlineStatus";
 
 
     //格式：<project>:<module>:<type>:<userId>
@@ -20,6 +22,25 @@ public class RedisKeyConstants {
                 userId.toString()
         );
     }
+
+    public static String heartbeatKey(UUID userId) {
+        return composeKey(
+                MyboxConstants.PROJECT,
+                MyboxConstants.MODULE_DEVICE,
+                REDIS_HEARTBEAT,
+                userId.toString()
+        );
+    }
+
+    public static String onlineStatusKey(UUID deviceId) {
+        return composeKey(
+                MyboxConstants.PROJECT,
+                MyboxConstants.MODULE_DEVICE,
+                REDIS_ONLINE_STATUS,
+                deviceId.toString()
+        );
+    }
+
 
     private static String composeKey(String... parts) {
         return String.join(":", parts);

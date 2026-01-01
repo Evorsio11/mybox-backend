@@ -22,8 +22,6 @@ public class DeviceOnlineStatusService {
 
     private final RedisTemplate<String, Object> redisTemplate;
 
-    private static final String ONLINE_STATUS_KEY_PREFIX = "device:online:";
-    private static final String HEARTBEAT_KEY_PREFIX = "device:heartbeat:";
     // Redis 键过期时间：10分钟（心跳间隔5分钟，留余量）
     private static final Duration KEY_TTL = Duration.ofMinutes(10);
 
@@ -33,7 +31,7 @@ public class DeviceOnlineStatusService {
      * @param deviceId 设备 ID
      */
     public void recordHeartbeat(UUID deviceId) {
-        String key = HEARTBEAT_KEY_PREFIX + deviceId;
+        String key = RedisKeyConstants.heartbeatKey(deviceId);
         String value = LocalDateTime.now().toString();
 
         redisTemplate.opsForValue().set(key, value, KEY_TTL.getSeconds(), TimeUnit.SECONDS);
@@ -47,7 +45,7 @@ public class DeviceOnlineStatusService {
      * @return 最后心跳时间，如果不存在返回 null
      */
     public LocalDateTime getLastHeartbeat(UUID deviceId) {
-        String key = HEARTBEAT_KEY_PREFIX + deviceId;
+        String key = RedisKeyConstants.heartbeatKey(deviceId);
         Object value = redisTemplate.opsForValue().get(key);
 
         if (value == null) {
@@ -64,7 +62,7 @@ public class DeviceOnlineStatusService {
      * @param status   在线状态
      */
     public void setOnlineStatus(UUID deviceId, com.evorsio.mybox.device.OnlineStatus status) {
-        String key = ONLINE_STATUS_KEY_PREFIX + deviceId;
+        String key = RedisKeyConstants.onlineStatusKey(deviceId);
         redisTemplate.opsForValue().set(key, status.name(), KEY_TTL.getSeconds(), TimeUnit.SECONDS);
         log.debug("设置设备在线状态: deviceId={}, status={}", deviceId, status);
     }
@@ -76,7 +74,7 @@ public class DeviceOnlineStatusService {
      * @return 在线状态，如果不存在返回 OFFLINE
      */
     public com.evorsio.mybox.device.OnlineStatus getOnlineStatus(UUID deviceId) {
-        String key = ONLINE_STATUS_KEY_PREFIX + deviceId;
+        String key = RedisKeyConstants.onlineStatusKey(deviceId);
         Object value = redisTemplate.opsForValue().get(key);
 
         if (value == null) {
@@ -92,8 +90,8 @@ public class DeviceOnlineStatusService {
      * @param deviceId 设备 ID
      */
     public void removeOnlineStatus(UUID deviceId) {
-        String onlineKey = ONLINE_STATUS_KEY_PREFIX + deviceId;
-        String heartbeatKey = HEARTBEAT_KEY_PREFIX + deviceId;
+        String onlineKey = RedisKeyConstants.onlineStatusKey(deviceId);
+        String heartbeatKey = RedisKeyConstants.heartbeatKey(deviceId);
 
         redisTemplate.delete(onlineKey);
         redisTemplate.delete(heartbeatKey);
