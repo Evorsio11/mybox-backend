@@ -822,7 +822,7 @@ GET /api/files/batch-download?fileIds=uuid1,uuid2,uuid3
 public class FileAccessAspect {
 
     @AfterReturning(
-        "execution(* com.evorsio.mybox.file.service.FileService.downloadFile(..)) && args(ownerId, fileId)"
+        "execution(* com.evorsio.mybox.file.FileService.downloadFile(..)) && args(ownerId, fileId)"
     )
     public void logDownload(UUID ownerId, UUID fileId) {
         FileAccessLog log = FileAccessLog.builder()
