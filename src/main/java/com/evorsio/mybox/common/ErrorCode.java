@@ -3,14 +3,12 @@ package com.evorsio.mybox.common;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
-import org.springframework.modulith.NamedInterface;
 
 /**
  * 统一错误码枚举
  */
 @Getter
 @AllArgsConstructor
-@NamedInterface("common.error") // 标记为命名接口，允许跨模块访问
 public enum ErrorCode {
 
     // Auth 1000

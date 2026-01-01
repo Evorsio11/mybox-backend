@@ -2,12 +2,10 @@ package com.evorsio.mybox.auth;
 
 import lombok.Getter;
 import org.springframework.context.ApplicationEvent;
-import org.springframework.modulith.NamedInterface;
 
 import java.util.UUID;
 
 @Getter
-@NamedInterface("common.event")
 public class UserRegisteredEvent extends ApplicationEvent {
     private final UUID userId;
     private final UUID deviceId;

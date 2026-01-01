@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.modulith.NamedInterface;
 
 import java.time.Instant;
 import java.util.List;
@@ -16,7 +15,6 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@NamedInterface("common.response") // 标记为命名接口，允许跨模块访问
 public class ApiResponse<T> {
     private boolean success;
     private String code;
