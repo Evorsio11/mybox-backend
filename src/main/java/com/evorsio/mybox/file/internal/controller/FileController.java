@@ -151,7 +151,7 @@ public class FileController {
     ) {
         UUID ownerId = UUID.fromString(authentication.getDetails().toString());
         fileService.deleteFile(ownerId, request.getFileId());
-        return ApiResponse.success("文件删除成功");
+        return ApiResponse.success();
     }
 
     @GetMapping
@@ -175,6 +175,6 @@ public class FileController {
     ) {
         UUID ownerId = UUID.fromString(authentication.getDetails().toString());
         fileService.restoreFile(ownerId, request.getFileId());
-        return ApiResponse.success("文件恢复成功");
+        return ApiResponse.success();
     }
 }

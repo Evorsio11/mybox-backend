@@ -41,7 +41,7 @@ public class AuthController {
                 request.getPassword(),
                 request.getDeviceInfo()
         );
-        return ApiResponse.success("注册成功，请登录");
+        return ApiResponse.success();
     }
 
     @PostMapping("/refresh")

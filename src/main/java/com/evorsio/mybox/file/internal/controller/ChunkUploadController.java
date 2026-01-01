@@ -77,7 +77,7 @@ public class ChunkUploadController {
         UUID ownerId = UUID.fromString(authentication.getDetails().toString());
         chunkUploadService.cancelUpload(ownerId, request.getUploadId());
 
-        return ApiResponse.success("取消上传成功");
+        return ApiResponse.success();
     }
 
     /**

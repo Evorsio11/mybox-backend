@@ -160,10 +160,12 @@ public class Device {
     /**
      * 检查设备是否在线（5分钟内有心跳）
      */
-    public boolean isOnline(){
-        return onlineStatus == OnlineStatus.ONLINE &&
-                lastHeartbeat != null &&
-                lastHeartbeat.isAfter(LocalDateTime.now().minusMinutes(5));
+    public OnlineStatus getOnlineStatus() {
+        if (status != DeviceStatus.ACTIVE) return OnlineStatus.OFFLINE;
+        if (lastHeartbeat == null) return OnlineStatus.OFFLINE;
+        if (lastHeartbeat.isAfter(LocalDateTime.now().minusMinutes(1))) return OnlineStatus.ONLINE;
+        if (lastHeartbeat.isAfter(LocalDateTime.now().minusMinutes(5))) return OnlineStatus.SLEEPING;
+        return OnlineStatus.OFFLINE;
     }
 
     /**

@@ -1,6 +1,7 @@
 package com.evorsio.mybox.device.internal.repository;
 
 import com.evorsio.mybox.device.Device;
+import com.evorsio.mybox.device.DeviceStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -16,5 +17,5 @@ public interface DeviceRepository extends JpaRepository<Device, UUID> {
 
     Optional<Device> findByDeviceToken(String deviceToken);
 
-    List<Device> findAllByUserId(UUID userId);
+    List<Device> findAllByUserIdAndStatus(UUID userId, DeviceStatus status);
 }

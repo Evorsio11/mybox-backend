@@ -20,6 +20,10 @@ public enum ErrorCode {
     // 设备 1500
     DEVICE_FINGERPRINT_MISMATCH("DEVICE_1501", "设备信息验证失败，请重新登录", HttpStatus.FORBIDDEN),
     DEVICE_NOT_FOUND("DEVICE_1502", "设备未找到", HttpStatus.NOT_FOUND),
+    DEVICE_ALREADY_DELETED("DEVICE_1503", "设备已被删除", HttpStatus.BAD_REQUEST),
+    DEVICE_NOT_ACTIVE("DEVICE_1504", "设备未激活或被禁用", HttpStatus.FORBIDDEN),
+    DEVICE_OFFLINE("DEVICE_1505", "设备离线", HttpStatus.CONFLICT),
+
 
     // 参数校验 1100
     VALIDATION_ERROR("AUTH_1100", "参数校验失败", HttpStatus.BAD_REQUEST),

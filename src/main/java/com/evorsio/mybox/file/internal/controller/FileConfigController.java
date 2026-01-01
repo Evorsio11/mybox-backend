@@ -52,7 +52,7 @@ public class FileConfigController {
         log.info("管理员 {} 更新文件配置", authentication.getName());
         fileConfigService.updateFileConfig(request);
 
-        return ApiResponse.success("配置更新成功");
+        return ApiResponse.success();
     }
 
     /**

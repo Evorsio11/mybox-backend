@@ -3,24 +3,25 @@ package com.evorsio.mybox.device.internal.service.impl;
 import com.evorsio.mybox.auth.UserLoggedInEvent;
 import com.evorsio.mybox.auth.UserRegisteredEvent;
 import com.evorsio.mybox.common.ErrorCode;
-import com.evorsio.mybox.device.Device;
-import com.evorsio.mybox.device.DeviceType;
+import com.evorsio.mybox.device.*;
 import com.evorsio.mybox.device.internal.exception.DeviceException;
+import com.evorsio.mybox.device.internal.mapper.DeviceMapper;
 import com.evorsio.mybox.device.internal.repository.DeviceRepository;
 import com.evorsio.mybox.device.internal.util.DeviceUtil;
-import com.evorsio.mybox.device.DeviceService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.UUID;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class DeviceServiceImpl implements DeviceService {
-
     private final DeviceRepository deviceRepository;
+    private final DeviceMapper deviceMapper;
 
     @Override
     public void registerDevice(UserRegisteredEvent event) {
@@ -94,6 +95,47 @@ public class DeviceServiceImpl implements DeviceService {
         return deviceToken; // 只返回 deviceToken
     }
 
+    @Override
+    public List<DeviceResponse> listActiveDevices(UUID userId) {
+        List<Device> devices = deviceRepository.findAllByUserIdAndStatus(userId, DeviceStatus.ACTIVE);
+        return deviceMapper.toResponseList(devices);
+    }
+
+    @Override
+    public void deleteDevice(UUID userId,UUID deviceId) {
+        Device device = deviceRepository.findByUserIdAndDeviceId(userId, deviceId)
+                .orElseThrow(()->new DeviceException(ErrorCode.DEVICE_NOT_FOUND));
+
+        device.setStatus(DeviceStatus.DISABLED);
+        device.setDeletedAt(LocalDateTime.now());
+        deviceRepository.save(device);
+    }
+
+    @Override
+    public void undoDeleteDevice(UUID userId, UUID deviceId) {
+        Device device = deviceRepository.findByUserIdAndDeviceId(userId, deviceId)
+                .orElseThrow(()->new DeviceException(ErrorCode.DEVICE_NOT_FOUND));
+
+        device.setStatus(DeviceStatus.ACTIVE);
+        device.setDeletedAt(null);
+        deviceRepository.save(device);
+    }
+
+    @Override
+    public void heartbeat(UUID userId, UUID deviceId) {
+        Device device = deviceRepository.findByUserIdAndDeviceId(userId, deviceId)
+                .orElseThrow(() -> new DeviceException(ErrorCode.DEVICE_NOT_FOUND));
+
+        if (device.getStatus() != DeviceStatus.ACTIVE) {
+            throw new DeviceException(ErrorCode.DEVICE_NOT_ACTIVE);
+        }
+
+        // 更新心跳和在线状态
+        device.updateHeartbeat();
+        deviceRepository.save(device);
+
+        log.info("设备心跳更新：userId={}, deviceId={}", userId, deviceId);
+    }
 
     /**
      * 根据事件生成设备指纹
