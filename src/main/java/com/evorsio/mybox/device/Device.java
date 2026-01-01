@@ -57,11 +57,6 @@ public class Device {
     @Comment("最后心跳时间")
     private LocalDateTime lastHeartbeat;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    @Comment("在线状态")
-    private OnlineStatus onlineStatus = OnlineStatus.OFFLINE;
-
     // ========== MinIO 存储配置 ==========
 
     @Column
@@ -158,17 +153,6 @@ public class Device {
     // ========== 业务方法 ==========
 
     /**
-     * 检查设备是否在线（5分钟内有心跳）
-     */
-    public OnlineStatus getOnlineStatus() {
-        if (status != DeviceStatus.ACTIVE) return OnlineStatus.OFFLINE;
-        if (lastHeartbeat == null) return OnlineStatus.OFFLINE;
-        if (lastHeartbeat.isAfter(LocalDateTime.now().minusMinutes(1))) return OnlineStatus.ONLINE;
-        if (lastHeartbeat.isAfter(LocalDateTime.now().minusMinutes(5))) return OnlineStatus.SLEEPING;
-        return OnlineStatus.OFFLINE;
-    }
-
-    /**
      * 检查存储空间是否超限
      */
     public boolean isStorageExceeded(){
@@ -195,14 +179,5 @@ public class Device {
             return 0.0;
         }
         return (storageUsed != null ? storageUsed : 0) * 100.0 / storageQuota;
-    }
-
-    /**
-     * 更新心跳（定时任务调用）
-     */
-    public void updateHeartbeat(){
-        this.lastHeartbeat = LocalDateTime.now();
-        this.lastActiveAt = LocalDateTime.now();
-        this.onlineStatus = OnlineStatus.ONLINE;
     }
 }

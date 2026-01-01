@@ -38,6 +38,11 @@ public class DeviceController {
                                                  @PathVariable UUID deviceId) {
         UUID userId = (UUID) authentication.getPrincipal();
         Device device = deviceService.heartbeat(userId, deviceId);
-        return ApiResponse.success(deviceMapper.toResponse(device));
+
+        // 手动组装响应，添加计算的在线状态
+        DeviceResponse response = deviceMapper.toResponse(device);
+        response.setOnlineStatus(deviceMapper.calculateOnlineStatus(device));
+
+        return ApiResponse.success(response);
     }
 }

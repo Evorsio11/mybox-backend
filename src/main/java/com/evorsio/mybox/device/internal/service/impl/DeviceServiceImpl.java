@@ -7,6 +7,7 @@ import com.evorsio.mybox.device.*;
 import com.evorsio.mybox.device.internal.exception.DeviceException;
 import com.evorsio.mybox.device.internal.mapper.DeviceMapper;
 import com.evorsio.mybox.device.internal.repository.DeviceRepository;
+import com.evorsio.mybox.device.internal.service.DeviceOnlineStatusService;
 import com.evorsio.mybox.device.internal.util.DeviceUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -22,6 +24,7 @@ import java.util.UUID;
 public class DeviceServiceImpl implements DeviceService {
     private final DeviceRepository deviceRepository;
     private final DeviceMapper deviceMapper;
+    private final DeviceOnlineStatusService onlineStatusService;
 
     @Override
     public void registerDevice(UserRegisteredEvent event) {
@@ -98,7 +101,16 @@ public class DeviceServiceImpl implements DeviceService {
     @Override
     public List<DeviceResponse> listActiveDevices(UUID userId) {
         List<Device> devices = deviceRepository.findAllByUserIdAndStatus(userId, DeviceStatus.ACTIVE);
-        return deviceMapper.toResponseList(devices);
+
+        // 手动组装 DeviceResponse，添加计算的在线状态
+        return devices.stream()
+                .map(device -> {
+                    DeviceResponse response = deviceMapper.toResponse(device);
+                    // 使用 Mapper 的 Domain 层逻辑计算在线状态
+                    response.setOnlineStatus(deviceMapper.calculateOnlineStatus(device));
+                    return response;
+                })
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -109,6 +121,9 @@ public class DeviceServiceImpl implements DeviceService {
         device.setStatus(DeviceStatus.DISABLED);
         device.setDeletedAt(LocalDateTime.now());
         deviceRepository.save(device);
+
+        // 删除 Redis 中的在线状态
+        onlineStatusService.removeOnlineStatus(deviceId);
     }
 
     @Override
@@ -122,7 +137,7 @@ public class DeviceServiceImpl implements DeviceService {
     }
 
     @Override
-    public void heartbeat(UUID userId, UUID deviceId) {
+    public Device heartbeat(UUID userId, UUID deviceId) {
         Device device = deviceRepository.findByUserIdAndDeviceId(userId, deviceId)
                 .orElseThrow(() -> new DeviceException(ErrorCode.DEVICE_NOT_FOUND));
 
@@ -130,11 +145,17 @@ public class DeviceServiceImpl implements DeviceService {
             throw new DeviceException(ErrorCode.DEVICE_NOT_ACTIVE);
         }
 
-        // 更新心跳和在线状态
-        device.updateHeartbeat();
+        // 更新心跳时间到数据库
+        device.setLastHeartbeat(LocalDateTime.now());
+        device.setLastActiveAt(LocalDateTime.now());
         deviceRepository.save(device);
 
+        // 记录心跳到 Redis
+        onlineStatusService.recordHeartbeat(deviceId);
+
         log.info("设备心跳更新：userId={}, deviceId={}", userId, deviceId);
+
+        return device;
     }
 
     /**

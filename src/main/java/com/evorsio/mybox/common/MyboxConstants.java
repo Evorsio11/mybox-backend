@@ -9,4 +9,5 @@ public class MyboxConstants {
 
     // 模块名
     public static final String MODULE_AUTH = "auth";
+    public static final String MODULE_DEVICE = "device";
 }

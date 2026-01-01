@@ -20,6 +20,5 @@ public interface DeviceService {
     List<DeviceResponse> listActiveDevices(UUID userId);
     void deleteDevice(UUID userId,UUID deviceId);
     void undoDeleteDevice(UUID userId, UUID deviceId);
-    void heartbeat(UUID userId, UUID deviceId);
-    OnlineStatus getDeviceStatus(UUID userId, UUID deviceId);
+    Device heartbeat(UUID userId, UUID deviceId);
 }
