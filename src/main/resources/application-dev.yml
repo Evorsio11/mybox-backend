@@ -3,12 +3,12 @@ spring:
     redis:
       host: localhost
       port: 6379
-      password: ${SPRING_DATA_REDIS_PASSWORD}
+      password: redis_password_123
       database: 0
   datasource:
     url: jdbc:postgresql://localhost:5432/devDb
-    username: ${SPRING_DATASOURCE_USERNAME}
-    password: ${SPRING_DATASOURCE_PASSWORD}
+    username: myuser
+    password: mypassword
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
@@ -19,8 +19,8 @@ spring:
         format_sql: true
   security:
     user:
-      name: ${SPRING_SECURITY_USER_NAME}
-      password: ${SPRING_SECURITY_USER_PASSWORD}
+      name: user
+      password: dev_password_123
   servlet:
     multipart:
       max-file-size: 10GB
@@ -29,8 +29,8 @@ spring:
 
 minio:
   endpoint: http://localhost:9000
-  access-key: ${MINIO_ACCESS_KEY}
-  secret-key: ${MINIO_SECRET_KEY}
+  access-key: minioadmin
+  secret-key: minioadmin123
   bucket: devbucket
 
 server:
@@ -40,7 +40,7 @@ server:
 mybox:
   auth:
     jwt:
-      secret: ${MYBOX_AUTH_JWT_SECRET}
+      secret: my_super_secret_jwt_key_for_development_only_do_not_use_in_production
       expiration: 86400
       refresh-expiration: 604800
       issuer: mybox-server

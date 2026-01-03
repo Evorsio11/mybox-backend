@@ -40,7 +40,7 @@ public class FileController {
             Authentication authentication,
             @RequestParam("files") List<MultipartFile> files
     ) {
-        UUID ownerId = UUID.fromString(authentication.getDetails().toString());
+        UUID ownerId = (UUID) authentication.getPrincipal();
 
         // 验证文件列表不为空
         if (files == null || files.isEmpty()) {
@@ -91,7 +91,7 @@ public class FileController {
             HttpServletRequest httpServletRequest) {
 
         // 获取当前用户的 ID
-        UUID ownerId = UUID.fromString(authentication.getDetails().toString());
+        UUID ownerId = (UUID) authentication.getPrincipal();
 
         // 获取文件对象
         File file = fileService.getActiveFileById(ownerId, request.getFileId());
@@ -149,21 +149,21 @@ public class FileController {
             Authentication authentication,
             @Valid @RequestBody FileIdRequest request
     ) {
-        UUID ownerId = UUID.fromString(authentication.getDetails().toString());
+        UUID ownerId = (UUID) authentication.getPrincipal();
         fileService.deleteFile(ownerId, request.getFileId());
         return ApiResponse.success();
     }
 
     @GetMapping
     public ApiResponse<List<File>> listFiles(Authentication authentication) {
-        UUID ownerId = UUID.fromString(authentication.getDetails().toString());
+        UUID ownerId = (UUID) authentication.getPrincipal();
         List<File> files = fileService.listFiles(ownerId);
         return ApiResponse.success("获取文件列表成功", files);
     }
 
     @GetMapping("/deleted")
     public ApiResponse<List<File>> listDeletedFiles(Authentication authentication) {
-        UUID ownerId = UUID.fromString(authentication.getDetails().toString());
+        UUID ownerId = (UUID) authentication.getPrincipal();
         List<File> files = fileService.listDeletedFiles(ownerId);
         return ApiResponse.success("获取已删除文件列表成功", files);
     }
@@ -173,7 +173,7 @@ public class FileController {
             Authentication authentication,
             @RequestBody FileIdRequest request
     ) {
-        UUID ownerId = UUID.fromString(authentication.getDetails().toString());
+        UUID ownerId = (UUID) authentication.getPrincipal();
         fileService.restoreFile(ownerId, request.getFileId());
         return ApiResponse.success();
     }

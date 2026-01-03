@@ -5,6 +5,7 @@ import com.evorsio.mybox.device.Device;
 import com.evorsio.mybox.device.DeviceResponse;
 import com.evorsio.mybox.device.DeviceService;
 import com.evorsio.mybox.device.internal.mapper.DeviceMapper;
+import com.evorsio.mybox.device.internal.service.DeviceOnlineStatusService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -18,6 +19,7 @@ import java.util.UUID;
 public class DeviceController {
     private final DeviceService deviceService;
     private final DeviceMapper deviceMapper;
+    private final DeviceOnlineStatusService onlineStatusService;
 
     @GetMapping
     public ApiResponse<List<DeviceResponse>> getDevices(Authentication authentication) {
@@ -39,10 +41,7 @@ public class DeviceController {
         UUID userId = (UUID) authentication.getPrincipal();
         Device device = deviceService.heartbeat(userId, deviceId);
 
-        // 手动组装响应，添加计算的在线状态
-        DeviceResponse response = deviceMapper.toResponse(device);
-        response.setOnlineStatus(deviceMapper.calculateOnlineStatus(device));
-
+        DeviceResponse response = deviceMapper.toResponse(device, onlineStatusService);
         return ApiResponse.success(response);
     }
 }

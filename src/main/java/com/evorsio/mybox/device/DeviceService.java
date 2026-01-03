@@ -21,4 +21,6 @@ public interface DeviceService {
     void deleteDevice(UUID userId,UUID deviceId);
     void undoDeleteDevice(UUID userId, UUID deviceId);
     Device heartbeat(UUID userId, UUID deviceId);
+
+    UUID getPrimaryDeviceId(UUID userId);
 }

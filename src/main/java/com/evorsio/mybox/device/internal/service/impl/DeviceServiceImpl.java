@@ -16,7 +16,6 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -101,16 +100,7 @@ public class DeviceServiceImpl implements DeviceService {
     @Override
     public List<DeviceResponse> listActiveDevices(UUID userId) {
         List<Device> devices = deviceRepository.findAllByUserIdAndStatus(userId, DeviceStatus.ACTIVE);
-
-        // 手动组装 DeviceResponse，添加计算的在线状态
-        return devices.stream()
-                .map(device -> {
-                    DeviceResponse response = deviceMapper.toResponse(device);
-                    // 使用 Mapper 的 Domain 层逻辑计算在线状态
-                    response.setOnlineStatus(deviceMapper.calculateOnlineStatus(device));
-                    return response;
-                })
-                .collect(Collectors.toList());
+        return deviceMapper.toResponseList(devices, onlineStatusService);
     }
 
     @Override
@@ -118,12 +108,14 @@ public class DeviceServiceImpl implements DeviceService {
         Device device = deviceRepository.findByUserIdAndDeviceId(userId, deviceId)
                 .orElseThrow(()->new DeviceException(ErrorCode.DEVICE_NOT_FOUND));
 
-        device.setStatus(DeviceStatus.DISABLED);
-        device.setDeletedAt(LocalDateTime.now());
+        // 使用实体的业务方法标记删除（会同时设置 status 和 deletedAt）
+        device.markAsDeleted();
         deviceRepository.save(device);
 
-        // 删除 Redis 中的在线状态
-        onlineStatusService.removeOnlineStatus(deviceId);
+        // 删除 Redis 中的心跳记录
+        onlineStatusService.removeHeartbeat(deviceId);
+
+        log.info("设备删除成功: userId={}, deviceId={}", userId, deviceId);
     }
 
     @Override
@@ -131,9 +123,11 @@ public class DeviceServiceImpl implements DeviceService {
         Device device = deviceRepository.findByUserIdAndDeviceId(userId, deviceId)
                 .orElseThrow(()->new DeviceException(ErrorCode.DEVICE_NOT_FOUND));
 
-        device.setStatus(DeviceStatus.ACTIVE);
-        device.setDeletedAt(null);
+        // 使用实体的业务方法恢复（会同时设置 status 为 ACTIVE 和清空 deletedAt）
+        device.restore();
         deviceRepository.save(device);
+
+        log.info("设备恢复成功: userId={}, deviceId={}", userId, deviceId);
     }
 
     @Override
@@ -141,7 +135,8 @@ public class DeviceServiceImpl implements DeviceService {
         Device device = deviceRepository.findByUserIdAndDeviceId(userId, deviceId)
                 .orElseThrow(() -> new DeviceException(ErrorCode.DEVICE_NOT_FOUND));
 
-        if (device.getStatus() != DeviceStatus.ACTIVE) {
+        // 使用实体的业务方法判断状态
+        if (!device.isActive()) {
             throw new DeviceException(ErrorCode.DEVICE_NOT_ACTIVE);
         }
 
@@ -156,6 +151,14 @@ public class DeviceServiceImpl implements DeviceService {
         log.info("设备心跳更新：userId={}, deviceId={}", userId, deviceId);
 
         return device;
+    }
+
+    @Override
+    public UUID getPrimaryDeviceId(UUID userId) {
+        return deviceRepository
+                .findByUserIdAndIsPrimaryTrueAndStatus(userId, DeviceStatus.ACTIVE)
+                .map(Device::getDeviceId)
+                .orElse(null); // 如果没有主设备返回 null
     }
 
     /**

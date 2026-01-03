@@ -18,10 +18,6 @@ public interface FileChunkRepository extends JpaRepository<FileChunk, UUID> {
 
     Optional<FileChunk> findByUploadSessionIdAndChunkNumber(UUID uploadSessionId, Integer chunkNumber);
 
-    List<FileChunk> findByUploadSessionIdAndStatus(UUID uploadSessionId, ChunkStatus status);
-
-    Optional<FileChunk> findByChunkHashAndStatus(String chunkHash, ChunkStatus status);
-
     @Modifying
     @Transactional
     void deleteByUploadSessionId(UUID uploadSessionId);

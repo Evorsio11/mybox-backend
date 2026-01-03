@@ -2,9 +2,13 @@ package com.evorsio.mybox.device.internal.mapper;
 
 import com.evorsio.mybox.device.Device;
 import com.evorsio.mybox.device.DeviceResponse;
+import com.evorsio.mybox.device.DeviceStatus;
 import com.evorsio.mybox.device.OnlineStatus;
+import com.evorsio.mybox.device.internal.service.DeviceOnlineStatusService;
+import org.mapstruct.Context;
 import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
+import org.mapstruct.AfterMapping;
+import org.mapstruct.MappingTarget;
 import org.mapstruct.NullValueCheckStrategy;
 import org.mapstruct.ReportingPolicy;
 
@@ -18,20 +22,37 @@ import java.util.List;
 )
 public interface DeviceMapper {
 
-    @Mapping(target = "onlineStatus", ignore = true)
-    DeviceResponse toResponse(Device device);
+    DeviceResponse toResponse(Device device, @Context DeviceOnlineStatusService onlineStatusService);
 
-    List<DeviceResponse> toResponseList(List<Device> devices);
+    List<DeviceResponse> toResponseList(List<Device> devices, @Context DeviceOnlineStatusService onlineStatusService);
+
+    /**
+     * 映射后设置在线状态
+     * 优先使用 Redis 中的心跳时间，如果没有则使用数据库中的心跳时间
+     */
+    @AfterMapping
+    default void setOnlineStatus(@MappingTarget DeviceResponse response,
+                                Device device,
+                                @Context DeviceOnlineStatusService onlineStatusService) {
+        LocalDateTime redisHeartbeat = onlineStatusService.getLastHeartbeat(device.getDeviceId());
+
+        if (redisHeartbeat != null) {
+            LocalDateTime originalHeartbeat = device.getLastHeartbeat();
+            device.setLastHeartbeat(redisHeartbeat);
+            response.setOnlineStatus(calculateOnlineStatus(device));
+            device.setLastHeartbeat(originalHeartbeat); // 恢复原值
+        } else {
+            // 使用数据库中的心跳时间计算状态
+            response.setOnlineStatus(calculateOnlineStatus(device));
+        }
+    }
 
     /**
      * 计算设备在线状态（Domain 层逻辑）
      * 基于最后心跳时间推导状态
-     *
-     * @param device 设备实体
-     * @return 在线状态
      */
     default OnlineStatus calculateOnlineStatus(Device device) {
-        if (device.getStatus() != com.evorsio.mybox.device.DeviceStatus.ACTIVE) {
+        if (device.getStatus() != DeviceStatus.ACTIVE) {
             return OnlineStatus.OFFLINE;
         }
 

@@ -18,4 +18,6 @@ public interface DeviceRepository extends JpaRepository<Device, UUID> {
     Optional<Device> findByDeviceToken(String deviceToken);
 
     List<Device> findAllByUserIdAndStatus(UUID userId, DeviceStatus status);
+
+    Optional<Device> findByUserIdAndIsPrimaryTrueAndStatus(UUID userId, DeviceStatus status);
 }

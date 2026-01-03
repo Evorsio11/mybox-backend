@@ -170,9 +170,13 @@ public class FileServiceImpl implements FileService {
         File file = getActiveFileById(ownerId, fileId);
 
         try {
+            // 删除 MinIO 中的文件
             minioStorageService.delete(file.getBucket(), file.getObjectName());
-            file.setStatus(FileStatus.DELETED);
+
+            // 使用实体的业务方法标记删除（会同时设置 status 和 deletedAt）
+            file.markAsDeleted();
             fileRepository.save(file);
+
             log.info("文件删除成功: ownerId={}, fileId={}, fileName={}", ownerId, fileId, file.getOriginalFileName());
         } catch (Exception e) {
             log.error("文件删除发生异常: ownerId={}, fileId={}, error={}", ownerId, fileId, e.getMessage(), e);
@@ -197,8 +201,11 @@ public class FileServiceImpl implements FileService {
                     log.warn("恢复文件失败, 文件未找到: ownerId={}, fileId={}", ownerId, fileId);
                     return new FileException(ErrorCode.FILE_NOT_FOUND);
                 });
-        file.setStatus(FileStatus.ACTIVE);
+
+        // 使用实体的业务方法恢复（会同时设置 status 为 ACTIVE 和清空 deletedAt）
+        file.restore();
         fileRepository.save(file);
+
         log.info("文件恢复成功: ownerId={}, fileId={}, fileName={}", ownerId, fileId, file.getOriginalFileName());
     }
 }

@@ -25,6 +25,10 @@ public class File {
     @Comment("文件记录唯一标识（数据库主键）")
     private UUID id;
 
+    @Column
+    @Comment("所属文件夹 ID（null 表示未分类）")
+    private UUID folderId;
+
     @Column(nullable = false)
     @Comment("用户上传时的原始文件名")
     private String originalFileName;
@@ -83,5 +87,86 @@ public class File {
     @PreUpdate
     public void preUpdate() {
         updatedAt = LocalDateTime.now();
+    }
+
+    // ========== 业务方法 ==========
+
+    /**
+     * 判断是否已删除
+     */
+    public boolean isDeleted() {
+        return status == FileStatus.DELETED;
+    }
+
+    /**
+     * 判断是否活跃
+     */
+    public boolean isActive() {
+        return status == FileStatus.ACTIVE;
+    }
+
+    /**
+     * 判断是否上传中
+     */
+    public boolean isUploading() {
+        return status == FileStatus.UPLOADING;
+    }
+
+    /**
+     * 判断是否上传失败
+     */
+    public boolean isFailed() {
+        return status == FileStatus.FAILED;
+    }
+
+    /**
+     * 判断是否被封禁
+     */
+    public boolean isBlocked() {
+        return status == FileStatus.BLOCKED;
+    }
+
+    /**
+     * 判断是否已物理删除
+     */
+    public boolean isPurged() {
+        return status == FileStatus.PURGED;
+    }
+
+    /**
+     * 软删除文件
+     */
+    public void markAsDeleted() {
+        this.status = FileStatus.DELETED;
+        this.deletedAt = LocalDateTime.now();
+    }
+
+    /**
+     * 恢复文件
+     */
+    public void restore() {
+        this.status = FileStatus.ACTIVE;
+        this.deletedAt = null;
+    }
+
+    /**
+     * 标记为上传失败
+     */
+    public void markAsFailed() {
+        this.status = FileStatus.FAILED;
+    }
+
+    /**
+     * 封禁文件
+     */
+    public void block() {
+        this.status = FileStatus.BLOCKED;
+    }
+
+    /**
+     * 标记为物理删除
+     */
+    public void markAsPurged() {
+        this.status = FileStatus.PURGED;
     }
 }

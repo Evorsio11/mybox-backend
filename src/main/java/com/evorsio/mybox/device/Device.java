@@ -18,8 +18,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "devices", uniqueConstraints = {
-        @UniqueConstraint(columnNames = {"user_id", "device_name"}),
-        @UniqueConstraint(columnNames = "device_uuid")
+        @UniqueConstraint(columnNames = {"user_id", "device_name"})
 })
 @Comment("用户设备信息表")
 public class Device {
@@ -28,13 +27,13 @@ public class Device {
     @Comment("设备记录唯一标识")
     private int id;
 
-    @Column(nullable = false)
-    @Comment("所属用户id")
-    private UUID userId;
-
     @Column(nullable = false, unique = true)
     @Comment("设备唯一标识（UUID，客户端生成）")
     private UUID deviceId;
+
+    @Column(nullable = false)
+    @Comment("所属用户id")
+    private UUID userId;
 
     @Column(nullable = false)
     @Comment("设备名称")
@@ -151,6 +150,71 @@ public class Device {
     }
 
     // ========== 业务方法 ==========
+
+    /**
+     * 判断是否已删除
+     */
+    public boolean isDeleted() {
+        return status == DeviceStatus.DELETED;
+    }
+
+    /**
+     * 判断是否活跃
+     */
+    public boolean isActive() {
+        return status == DeviceStatus.ACTIVE;
+    }
+
+    /**
+     * 判断是否已禁用
+     */
+    public boolean isDisabled() {
+        return status == DeviceStatus.DISABLED;
+    }
+
+    /**
+     * 判断是否已封禁
+     */
+    public boolean isBlocked() {
+        return status == DeviceStatus.BLOCKED;
+    }
+
+    /**
+     * 软删除设备
+     */
+    public void markAsDeleted() {
+        this.status = DeviceStatus.DELETED;
+        this.deletedAt = LocalDateTime.now();
+    }
+
+    /**
+     * 恢复设备
+     */
+    public void restore() {
+        this.status = DeviceStatus.ACTIVE;
+        this.deletedAt = null;
+    }
+
+    /**
+     * 禁用设备
+     */
+    public void disable() {
+        this.status = DeviceStatus.DISABLED;
+    }
+
+    /**
+     * 启用设备
+     */
+    public void enable() {
+        this.status = DeviceStatus.ACTIVE;
+    }
+
+    /**
+     * 封禁设备
+     */
+    public void block() {
+        this.status = DeviceStatus.BLOCKED;
+    }
 
     /**
      * 检查存储空间是否超限
