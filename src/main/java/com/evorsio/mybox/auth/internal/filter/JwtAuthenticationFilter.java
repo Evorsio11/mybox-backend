@@ -1,14 +1,8 @@
 package com.evorsio.mybox.auth.internal.filter;
 
-import com.evorsio.mybox.auth.internal.properties.AuthJwtProperties;
-import com.evorsio.mybox.auth.internal.util.JwtUtil;
-import io.jsonwebtoken.Claims;
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import java.io.IOException;
+import java.util.UUID;
+
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -17,7 +11,16 @@ import org.springframework.security.oauth2.jwt.JwtException;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import java.io.IOException;
+import com.evorsio.mybox.auth.internal.properties.AuthJwtProperties;
+import com.evorsio.mybox.auth.internal.util.JwtUtil;
+
+import io.jsonwebtoken.Claims;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Component
@@ -53,12 +56,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     // 加载用户信息
                     UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
-                    String sub = claims.getSubject(); // JWT sub
+                    // 从 JWT 的 subject 中获取用户 ID (UUID)
+                    String sub = claims.getSubject(); // JWT sub 应该是用户 ID
+                    UUID userId = UUID.fromString(sub);
 
+                    // 将 userId 作为 principal，而不是 UserDetails
                     UsernamePasswordAuthenticationToken authentication =
-                            new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                            new UsernamePasswordAuthenticationToken(userId, null, userDetails.getAuthorities());
 
-                    authentication.setDetails(sub);
+                    // 可以将 UserDetails 放到 details 中，如果后续需要的话
+                    authentication.setDetails(userDetails);
 
                     SecurityContextHolder.getContext().setAuthentication(authentication);
                 }

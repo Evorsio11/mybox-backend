@@ -1,16 +1,22 @@
 package com.evorsio.mybox.file.internal.controller;
 
+import java.util.UUID;
+
+import org.springframework.security.core.Authentication;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.evorsio.mybox.common.ApiResponse;
-import com.evorsio.mybox.file.*;
 import com.evorsio.mybox.file.ChunkUploadService;
+import com.evorsio.mybox.file.UnifiedChunkUploadRequest;
+import com.evorsio.mybox.file.UnifiedChunkUploadResponse;
+
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.Authentication;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.UUID;
 
 @Slf4j
 @Validated
@@ -21,92 +27,37 @@ public class ChunkUploadController {
     private final ChunkUploadService chunkUploadService;
 
     /**
-     * 初始化分片上传
-     * POST /api/files/chunk/init
+     * 统一分片上传接口（支持 Uppy XHRUpload）
+     * POST /api/files/chunk/unified
+     * 
+     * 单接口设计，自动处理初始化、上传和合并
+     * 适配 Uppy 的 XHRUpload 插件
      */
-    @PostMapping("/init")
-    public ApiResponse<ChunkInitResponse> initUpload(
+    @PostMapping("/unified")
+    public ApiResponse<UnifiedChunkUploadResponse> uploadChunkUnified(
             Authentication authentication,
-            @Valid @RequestBody ChunkInitRequest request) {
+            @Valid @ModelAttribute UnifiedChunkUploadRequest request) {
 
-        UUID ownerId = UUID.fromString(authentication.getDetails().toString());
-        ChunkInitResponse response = chunkUploadService.initUpload(ownerId, request);
+        long startTime = System.currentTimeMillis();
+        UUID ownerId = (UUID) authentication.getPrincipal();
 
-        return ApiResponse.success("初始化上传成功", response);
-    }
+        log.info("[分片上传-开始] ownerId={}, fileIdentifier={}, fileName={}, chunkNumber={}/{}, fileSize={}",
+                ownerId, request.getFileIdentifier(), request.getOriginalFileName(),
+                request.getChunkNumber(), request.getTotalChunks(), request.getFileSize());
 
-    /**
-     * 上传分片
-     * POST /api/files/chunk/upload
-     */
-    @PostMapping("/upload")
-    public ApiResponse<UploadChunkResponse> uploadChunk(
-            Authentication authentication,
-            @Valid @ModelAttribute UploadChunkRequest request) {
+        try {
+            UnifiedChunkUploadResponse response = chunkUploadService.uploadChunkUnified(ownerId, request);
 
-        UUID ownerId = UUID.fromString(authentication.getDetails().toString());
-        UploadChunkResponse response = chunkUploadService.uploadChunk(ownerId, request);
+            long duration = System.currentTimeMillis() - startTime;
+            log.info("[分片上传-完成] ownerId={}, fileIdentifier={}, chunkNumber={}, 耗时={}ms, completed={}",
+                    ownerId, request.getFileIdentifier(), request.getChunkNumber(), duration, response.getCompleted());
 
-        return ApiResponse.success("上传分片成功", response);
-    }
-
-    /**
-     * 合并分片
-     * POST /api/files/chunk/merge
-     */
-    @PostMapping("/merge")
-    public ApiResponse<ChunkMergeResponse> mergeChunks(
-            Authentication authentication,
-            @Valid @RequestBody ChunkMergeRequest request) {
-
-        UUID ownerId = UUID.fromString(authentication.getDetails().toString());
-        ChunkMergeResponse response = chunkUploadService.mergeChunks(ownerId, request.getUploadId());
-
-        return ApiResponse.success("合并分片成功", response);
-    }
-
-    /**
-     * 取消上传
-     * DELETE /api/files/chunk/cancel
-     */
-    @DeleteMapping("/cancel")
-    public ApiResponse<Void> cancelUpload(
-            Authentication authentication,
-            @Valid @RequestBody ChunkMergeRequest request) {
-
-        UUID ownerId = UUID.fromString(authentication.getDetails().toString());
-        chunkUploadService.cancelUpload(ownerId, request.getUploadId());
-
-        return ApiResponse.success();
-    }
-
-    /**
-     * 查询上传进度
-     * GET /api/files/chunk/progress/{uploadId}
-     */
-    @GetMapping("/progress/{uploadId}")
-    public ApiResponse<ChunkProgressResponse> getProgress(
-            Authentication authentication,
-            @PathVariable UUID uploadId) {
-
-        UUID ownerId = UUID.fromString(authentication.getDetails().toString());
-        ChunkProgressResponse response = chunkUploadService.getProgress(ownerId, uploadId);
-
-        return ApiResponse.success("查询进度成功", response);
-    }
-
-    /**
-     * 断点续传
-     * GET /api/files/chunk/resume/{uploadId}
-     */
-    @GetMapping("/resume/{uploadId}")
-    public ApiResponse<ChunkResumeResponse> resumeUpload(
-            Authentication authentication,
-            @PathVariable UUID uploadId) {
-
-        UUID ownerId = UUID.fromString(authentication.getDetails().toString());
-        ChunkResumeResponse response = chunkUploadService.resumeUpload(ownerId, uploadId);
-
-        return ApiResponse.success("断点续传成功", response);
+            return ApiResponse.success(response.getCompleted() ? "上传完成" : "分片上传成功", response);
+        } catch (Exception e) {
+            long duration = System.currentTimeMillis() - startTime;
+            log.error("[分片上传-失败] ownerId={}, fileIdentifier={}, chunkNumber={}, 耗时={}ms, error={}",
+                    ownerId, request.getFileIdentifier(), request.getChunkNumber(), duration, e.getMessage(), e);
+            throw e;
+        }
     }
 }

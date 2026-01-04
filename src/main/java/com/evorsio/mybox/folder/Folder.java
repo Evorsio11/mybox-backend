@@ -139,6 +139,7 @@ public class Folder {
         if (isStarred == null) isStarred = false;
         if (sortOrder == null) sortOrder = 0;
         if (folderType == null) folderType = FolderType.USER;
+        if (status == null) status = FolderStatus.ACTIVE;
     }
 
     @PreUpdate

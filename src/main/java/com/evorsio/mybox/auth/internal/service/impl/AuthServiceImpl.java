@@ -1,29 +1,29 @@
 package com.evorsio.mybox.auth.internal.service.impl;
 
+import java.util.Map;
+import java.util.UUID;
+
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+
+import com.evorsio.mybox.auth.AuthService;
+import com.evorsio.mybox.auth.DeviceInfoDto;
+import com.evorsio.mybox.auth.RefreshTokenService;
+import com.evorsio.mybox.auth.TokenResponse;
 import com.evorsio.mybox.auth.TokenType;
 import com.evorsio.mybox.auth.User;
 import com.evorsio.mybox.auth.UserRole;
-import com.evorsio.mybox.auth.DeviceInfoDto;
-import com.evorsio.mybox.auth.TokenResponse;
-import com.evorsio.mybox.auth.UserLoggedInEvent;
-import com.evorsio.mybox.auth.UserRegisteredEvent;
 import com.evorsio.mybox.auth.internal.exception.AuthException;
 import com.evorsio.mybox.auth.internal.properties.AuthJwtProperties;
 import com.evorsio.mybox.auth.internal.repository.AuthRepository;
 import com.evorsio.mybox.auth.internal.util.JwtClaimsBuilder;
 import com.evorsio.mybox.auth.internal.util.JwtUtil;
-import com.evorsio.mybox.auth.AuthService;
-import com.evorsio.mybox.auth.RefreshTokenService;
 import com.evorsio.mybox.common.ErrorCode;
+import com.evorsio.mybox.device.DeviceService;
+
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
-
-import java.util.Map;
-import java.util.UUID;
 
 @Slf4j
 @Service
@@ -34,7 +34,7 @@ public class AuthServiceImpl implements AuthService {
     private final RefreshTokenService refreshTokenService;
     private final JwtUtil jwtUtil;
     private final AuthJwtProperties authJwtProperties;
-    private final ApplicationEventPublisher eventPublisher;
+    private final DeviceService deviceService;
 
     @Override
     public void register(String username, String email, String rawPassword, DeviceInfoDto deviceInfo) {
@@ -56,8 +56,8 @@ public class AuthServiceImpl implements AuthService {
                 .role(role)
                 .build());
 
-        // 注册成功后记录设备信息
-        publishRegisterEvent(deviceInfo, user);
+        // 注册成功后直接记录设备信息
+        deviceService.registerDevice(user.getId(), deviceInfo);
     }
 
 
@@ -69,12 +69,9 @@ public class AuthServiceImpl implements AuthService {
             throw new AuthException(ErrorCode.INVALID_CREDENTIALS);
         }
 
-        // 发布事件并获取 event
-        UserLoggedInEvent event = publishLoginEvent(deviceInfo, user);
-
-        // 阻塞等待 deviceToken 生成
-        String deviceToken = event.getDeviceTokenFuture().join();
-        return  generateTokenResponse(user,deviceToken);
+        // 直接调用deviceService生成deviceToken和deviceId
+        var deviceResult = deviceService.loginDeviceAndReturnToken(user.getId(), deviceInfo);
+        return generateTokenResponse(user, deviceResult.getDeviceToken(), deviceResult.getDeviceId());
     }
 
     @Override
@@ -91,11 +88,11 @@ public class AuthServiceImpl implements AuthService {
         }
         User user = authRepository.findById(userId)
                 .orElseThrow(() -> new AuthException(ErrorCode.USER_NOT_FOUND));
-        return generateTokenResponse(user, null);
+        return generateTokenResponse(user, null, null);
     }
 
     @NotNull
-    private TokenResponse generateTokenResponse(User user,String deviceToken) {
+    private TokenResponse generateTokenResponse(User user, String deviceToken, UUID deviceId) {
         Map<String, Object> claims = JwtClaimsBuilder.build(user);
         String accessToken = jwtUtil.generateToken(user.getId().toString(), claims, TokenType.ACCESS);
         String refreshToken = jwtUtil.generateToken(user.getId().toString(), null, TokenType.REFRESH);
@@ -107,37 +104,8 @@ public class AuthServiceImpl implements AuthService {
                 authJwtProperties.getTokenPrefix(),
                 authJwtProperties.getExpiration(),
                 refreshToken,
-                deviceToken
-        );
-    }
-
-    private UserLoggedInEvent publishLoginEvent(DeviceInfoDto deviceInfo, User user) {
-        UserLoggedInEvent event = new UserLoggedInEvent(
-                this,
-                user.getId(),
-                deviceInfo.getDeviceId(),
-                deviceInfo.getDeviceName(),
-                deviceInfo.getDeviceType(),
-                deviceInfo.getOsName(),
-                deviceInfo.getOsVersion()
-        );
-
-        eventPublisher.publishEvent(event);
-        return event;
-    }
-
-
-    private void publishRegisterEvent(DeviceInfoDto deviceInfo, User user) {
-        eventPublisher.publishEvent(
-                new UserRegisteredEvent(
-                        this,
-                        user.getId(),
-                        deviceInfo.getDeviceId(),
-                        deviceInfo.getDeviceName(),
-                        deviceInfo.getDeviceType(),
-                        deviceInfo.getOsName(),
-                        deviceInfo.getOsVersion()
-                )
+                deviceToken,
+                deviceId
         );
     }
 }

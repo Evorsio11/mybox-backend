@@ -1,21 +1,28 @@
 package com.evorsio.mybox.device.internal.service.impl;
 
-import com.evorsio.mybox.auth.UserLoggedInEvent;
-import com.evorsio.mybox.auth.UserRegisteredEvent;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
+import org.springframework.stereotype.Service;
+
+import com.evorsio.mybox.auth.DeviceInfoDto;
 import com.evorsio.mybox.common.ErrorCode;
-import com.evorsio.mybox.device.*;
+import com.evorsio.mybox.device.Device;
+import com.evorsio.mybox.device.DeviceLoginResponse;
+import com.evorsio.mybox.device.DeviceResponse;
+import com.evorsio.mybox.device.DeviceService;
+import com.evorsio.mybox.device.DeviceStatus;
+import com.evorsio.mybox.device.DeviceType;
 import com.evorsio.mybox.device.internal.exception.DeviceException;
 import com.evorsio.mybox.device.internal.mapper.DeviceMapper;
 import com.evorsio.mybox.device.internal.repository.DeviceRepository;
 import com.evorsio.mybox.device.internal.service.DeviceOnlineStatusService;
 import com.evorsio.mybox.device.internal.util.DeviceUtil;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.UUID;
 
 @Slf4j
 @Service
@@ -26,75 +33,128 @@ public class DeviceServiceImpl implements DeviceService {
     private final DeviceOnlineStatusService onlineStatusService;
 
     @Override
-    public void registerDevice(UserRegisteredEvent event) {
-        Device device = deviceRepository.findByUserIdAndDeviceId(event.getUserId(), event.getDeviceId())
-                .orElse(null);
+    public void registerDevice(UUID userId, DeviceInfoDto deviceInfo) {
+        // 通过用户ID和设备名称查找已存在的设备
+        Optional<Device> existingDevice = deviceRepository.findAllByUserIdAndStatus(userId, DeviceStatus.ACTIVE)
+                .stream()
+                .filter(d -> d.getDeviceName().equals(deviceInfo.getDeviceName()) 
+                          && d.getDeviceType().name().equals(deviceInfo.getDeviceType()))
+                .findFirst();
 
-        String fingerprint = generateFingerprintFromEvent(event);
-
-        if (device != null) {
-            // 更新已存在设备指纹
+        if (existingDevice.isPresent()) {
+            // 更新已存在设备
+            Device device = existingDevice.get();
+            String fingerprint = generateFingerprint(
+                    device.getDeviceId().toString(),
+                    deviceInfo.getDeviceName(),
+                    deviceInfo.getDeviceType(),
+                    deviceInfo.getOsName(),
+                    deviceInfo.getOsVersion()
+            );
             device.setFingerprint(fingerprint);
-            device.setOsName(event.getOsName());
-            device.setOsVersion(event.getOsVersion());
+            device.setOsName(deviceInfo.getOsName());
+            device.setOsVersion(deviceInfo.getOsVersion());
 
             deviceRepository.save(device);
-            log.info("注册阶段：更新已存在设备指纹: userId={}, deviceId={}, fingerprint={}",
-                    event.getUserId(), event.getDeviceId(), fingerprint);
+            log.info("注册阶段：更新已存在设备: userId={}, deviceId={}, deviceName={}",
+                    userId, device.getDeviceId(), deviceInfo.getDeviceName());
         } else {
-            // 创建新设备（不生成 deviceToken）
-            device = buildDeviceFromEvent(event, fingerprint, null);
+            // 创建新设备，生成 deviceId
+            UUID deviceId = UUID.randomUUID();
+            String fingerprint = generateFingerprint(
+                    deviceId.toString(),
+                    deviceInfo.getDeviceName(),
+                    deviceInfo.getDeviceType(),
+                    deviceInfo.getOsName(),
+                    deviceInfo.getOsVersion()
+            );
+            Device device = buildDevice(userId, deviceId, deviceInfo, fingerprint, null);
             deviceRepository.save(device);
-            log.info("注册阶段：创建新设备（无令牌）: userId={}, deviceId={}, fingerprint={}",
-                    event.getUserId(), event.getDeviceId(), fingerprint);
+            log.info("注册阶段：创建新设备: userId={}, deviceId={}, deviceName={}",
+                    userId, deviceId, deviceInfo.getDeviceName());
         }
     }
 
     @Override
-    public String loginDeviceAndReturnToken(UserLoggedInEvent event) {
-        Device device = deviceRepository.findByUserIdAndDeviceId(event.getUserId(), event.getDeviceId())
-                .orElse(null);
-
-        String fingerprint = generateFingerprintFromEvent(event);
+    public DeviceLoginResponse loginDeviceAndReturnToken(UUID userId, DeviceInfoDto deviceInfo) {
+        // 通过设备名称和类型查找已存在的设备
+        Optional<Device> existingDevice = deviceRepository.findAllByUserIdAndStatus(userId, DeviceStatus.ACTIVE)
+                .stream()
+                .filter(d -> d.getDeviceName().equals(deviceInfo.getDeviceName()) 
+                          && d.getDeviceType().name().equals(deviceInfo.getDeviceType()))
+                .findFirst();
+        
         LocalDateTime now = LocalDateTime.now();
         String deviceToken;
+        Device device;
+        UUID deviceId;
 
-        if (device != null) {
-            // 验证设备指纹
+        if (existingDevice.isPresent()) {
+            // 设备已存在，验证指纹
+            device = existingDevice.get();
+            deviceId = device.getDeviceId();
+            String fingerprint = generateFingerprint(
+                    deviceId.toString(),
+                    deviceInfo.getDeviceName(),
+                    deviceInfo.getDeviceType(),
+                    deviceInfo.getOsName(),
+                    deviceInfo.getOsVersion()
+            );
+            
+            // 验证指纹（允许OS版本更新）
             if (!fingerprint.equals(device.getFingerprint())) {
-                log.warn("设备指纹不匹配，拒绝登录: deviceId={}, user={}, expected={}, actual={}",
-                        event.getDeviceId(), event.getUserId(), device.getFingerprint(), fingerprint);
-                throw new DeviceException(ErrorCode.DEVICE_FINGERPRINT_MISMATCH);
+                log.info("设备指纹变化，更新指纹: deviceId={}, user={}",
+                        deviceId, userId);
+                device.setFingerprint(fingerprint);
             }
 
-            // 指纹验证通过，生成令牌（如果没有）
+            // 生成或复用令牌
             if (device.getDeviceToken() == null || device.getDeviceToken().isEmpty()) {
                 deviceToken = DeviceUtil.generateDeviceToken();
                 device.setDeviceToken(deviceToken);
-                log.info("登录阶段：生成设备令牌: deviceId={}, token={}, user={}",
-                        event.getDeviceId(), deviceToken, event.getUserId());
+                log.info("登录阶段：生成设备令牌: deviceId={}, user={}",
+                        deviceId, userId);
             } else {
                 deviceToken = device.getDeviceToken();
             }
 
-            device.setOsName(event.getOsName());
-            device.setOsVersion(event.getOsVersion());
+            device.setOsName(deviceInfo.getOsName());
+            device.setOsVersion(deviceInfo.getOsVersion());
             device.setLastActiveAt(now);
 
             deviceRepository.save(device);
-            log.info("登录阶段：更新设备信息: userId={}, deviceId={}", event.getUserId(), event.getDeviceId());
+            log.info("登录阶段：更新设备信息: userId={}, deviceId={}, deviceName={}", 
+                    userId, deviceId, deviceInfo.getDeviceName());
 
         } else {
-            // 新设备登录
+            // 新设备登录，生成 deviceId 和 deviceToken
+            deviceId = UUID.randomUUID();
+            String fingerprint = generateFingerprint(
+                    deviceId.toString(),
+                    deviceInfo.getDeviceName(),
+                    deviceInfo.getDeviceType(),
+                    deviceInfo.getOsName(),
+                    deviceInfo.getOsVersion()
+            );
             deviceToken = DeviceUtil.generateDeviceToken();
-            device = buildDeviceFromEvent(event, fingerprint, deviceToken);
+            device = buildDevice(userId, deviceId, deviceInfo, fingerprint, deviceToken);
             device.setLastActiveAt(now);
+            
+            // 检查是否是用户的第一个设备，如果是则设为主设备
+            List<Device> userDevices = deviceRepository.findAllByUserIdAndStatus(userId, DeviceStatus.ACTIVE);
+            if (userDevices.isEmpty()) {
+                device.setIsPrimary(true);
+                log.info("登录阶段：创建用户的第一个设备并设为主设备: deviceId={}, deviceName={}, user={}",
+                        deviceId, deviceInfo.getDeviceName(), userId);
+            } else {
+                log.info("登录阶段：创建新设备并生成令牌: deviceId={}, deviceName={}, user={}",
+                        deviceId, deviceInfo.getDeviceName(), userId);
+            }
+            
             deviceRepository.save(device);
-            log.info("登录阶段：创建新设备并生成令牌: deviceId={}, token={}, user={}",
-                    event.getDeviceId(), deviceToken, event.getUserId());
         }
 
-        return deviceToken; // 只返回 deviceToken
+        return new DeviceLoginResponse(deviceId, deviceToken);
     }
 
     @Override
@@ -162,55 +222,31 @@ public class DeviceServiceImpl implements DeviceService {
     }
 
     /**
-     * 根据事件生成设备指纹
+     * 生成设备指纹
      */
-    private String generateFingerprintFromEvent(Object event) {
-        if (event instanceof UserRegisteredEvent reg) {
-            return DeviceUtil.generateFingerprint(
-                    reg.getDeviceId().toString(),
-                    reg.getDeviceName(),
-                    reg.getDeviceType(),
-                    reg.getOsName(),
-                    reg.getOsVersion()
-            );
-        } else if (event instanceof UserLoggedInEvent login) {
-            return DeviceUtil.generateFingerprint(
-                    login.getDeviceId().toString(),
-                    login.getDeviceName(),
-                    login.getDeviceType(),
-                    login.getOsName(),
-                    login.getOsVersion()
-            );
-        }
-        throw new IllegalArgumentException("不支持的事件类型：" + event.getClass());
+    private String generateFingerprint(String deviceId, String deviceName, String deviceType, 
+                                      String osName, String osVersion) {
+        return DeviceUtil.generateFingerprint(deviceId, deviceName, deviceType, osName, osVersion);
     }
 
     /**
      * 构建设备对象
      *
-     * @param event        注册或登录事件
+     * @param userId       用户ID
+     * @param deviceId     设备ID
+     * @param deviceInfo   设备信息
      * @param fingerprint  指纹
      * @param deviceToken  设备令牌，可为 null（注册阶段）
      */
-    private Device buildDeviceFromEvent(Object event, String fingerprint, String deviceToken) {
+    private Device buildDevice(UUID userId, UUID deviceId, DeviceInfoDto deviceInfo, 
+                              String fingerprint, String deviceToken) {
         Device device = new Device();
-        if (event instanceof UserRegisteredEvent reg) {
-            device.setDeviceId(reg.getDeviceId());
-            device.setUserId(reg.getUserId());
-            device.setDeviceName(reg.getDeviceName());
-            device.setDeviceType(DeviceType.valueOf(reg.getDeviceType()));
-            device.setOsName(reg.getOsName());
-            device.setOsVersion(reg.getOsVersion());
-        } else if (event instanceof UserLoggedInEvent login) {
-            device.setDeviceId(login.getDeviceId());
-            device.setUserId(login.getUserId());
-            device.setDeviceName(login.getDeviceName());
-            device.setDeviceType(DeviceType.valueOf(login.getDeviceType()));
-            device.setOsName(login.getOsName());
-            device.setOsVersion(login.getOsVersion());
-        } else {
-            throw new IllegalArgumentException("不支持的事件类型：" + event.getClass());
-        }
+        device.setDeviceId(deviceId);
+        device.setUserId(userId);
+        device.setDeviceName(deviceInfo.getDeviceName());
+        device.setDeviceType(DeviceType.valueOf(deviceInfo.getDeviceType()));
+        device.setOsName(deviceInfo.getOsName());
+        device.setOsVersion(deviceInfo.getOsVersion());
         device.setFingerprint(fingerprint);
         device.setDeviceToken(deviceToken);
         return device;

@@ -21,4 +21,6 @@ public interface MinioStorageService {
     void deleteChunks(String bucket, java.util.List<String> objectNames);
 
     void mergeChunks(String bucket, java.util.List<String> chunkObjectNames, String targetObjectName);
+
+    void copyObject(String sourceBucket, String sourceObjectName, String targetBucket, String targetObjectName);
 }

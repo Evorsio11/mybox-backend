@@ -1,20 +1,5 @@
 package com.evorsio.mybox.file.internal.service.impl;
 
-import com.evorsio.mybox.common.ErrorCode;
-import com.evorsio.mybox.file.File;
-import com.evorsio.mybox.file.FileStatus;
-import com.evorsio.mybox.file.internal.exception.FileException;
-import com.evorsio.mybox.file.internal.repository.FileRepository;
-import com.evorsio.mybox.file.FileConfigService;
-import com.evorsio.mybox.file.FileService;
-import com.evorsio.mybox.file.MinioStorageService;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.codec.binary.Hex;
-import org.apache.commons.io.FilenameUtils;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-
 import java.io.InputStream;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -23,6 +8,24 @@ import java.security.MessageDigest;
 import java.util.List;
 import java.util.UUID;
 
+import org.apache.commons.codec.binary.Hex;
+import org.apache.commons.io.FilenameUtils;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+
+import com.evorsio.mybox.common.ErrorCode;
+import com.evorsio.mybox.file.File;
+import com.evorsio.mybox.file.FileConfigService;
+import com.evorsio.mybox.file.FileService;
+import com.evorsio.mybox.file.FileStatus;
+import com.evorsio.mybox.file.MinioStorageService;
+import com.evorsio.mybox.file.internal.exception.FileException;
+import com.evorsio.mybox.file.internal.repository.FileRepository;
+import com.evorsio.mybox.folder.FolderService;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -30,15 +33,31 @@ public class FileServiceImpl implements FileService {
     private final MinioStorageService minioStorageService;
     private final FileRepository fileRepository;
     private final FileConfigService fileConfigService;
+    private final FolderService folderService;
 
     @Value("${minio.bucket}")
     private String defaultBucket;
 
     @Override
     public File uploadFile(UUID ownerId, String originalFileName, long size, String contentType, InputStream inputStream) {
+        return uploadFile(ownerId, null, originalFileName, size, contentType, inputStream);
+    }
+
+    @Override
+    public File uploadFile(UUID ownerId, UUID folderId, String originalFileName, long size, String contentType, InputStream inputStream) {
         if (originalFileName == null || inputStream == null) {
             log.error("文件上传参数为空: ownerId={}, fileName={}", ownerId, originalFileName);
             throw new FileException(ErrorCode.VALIDATION_ERROR);
+        }
+
+        // 验证文件夹是否存在且属于该用户
+        if (folderId != null) {
+            try {
+                folderService.getFolderDetails(folderId, ownerId);
+            } catch (Exception e) {
+                log.error("文件夹不存在或不属于该用户: folderId={}, ownerId={}", folderId, ownerId);
+                throw new FileException(ErrorCode.FOLDER_NOT_FOUND);
+            }
         }
 
         // 0. 单文件大小校验（必须）
@@ -72,7 +91,7 @@ public class FileServiceImpl implements FileService {
         }
 
         String objectName = UUID.randomUUID().toString();
-        String encodedFileName = URLEncoder.encode(originalFileName, StandardCharsets.UTF_8);
+        String resolvedFileName = resolveFileName(ownerId, folderId, originalFileName);
         try {
             // 3. 使用 DigestInputStream 边上传边计算 SHA-256
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
@@ -87,21 +106,40 @@ public class FileServiceImpl implements FileService {
             // 4. 检查数据库是否已有相同文件
             File existingFile = fileRepository.findByOwnerIdAndFileHashAndStatus(ownerId, fileHash, FileStatus.ACTIVE);
             if (existingFile != null) {
-                // 文件重复，删除刚上传的 MinIO 对象
+                // 文件重复，删除刚上传的 MinIO 对象，然后创建新的元数据记录复用已有对象
                 minioStorageService.delete(defaultBucket, objectName);
-                return existingFile;
+
+                File duplicateFile = File.builder()
+                        .ownerId(ownerId)
+                        .folderId(folderId)
+                        .originalFileName(resolvedFileName)
+                        .objectName(existingFile.getObjectName())
+                        .bucket(existingFile.getBucket())
+                        .contentType(existingFile.getContentType())
+                        .size(existingFile.getSize())
+                        .fileHash(existingFile.getFileHash())
+                        .status(FileStatus.ACTIVE)
+                        .build();
+
+                File savedDuplicate = fileRepository.save(duplicateFile);
+                log.info("文件重复上传，生成新记录: fileId={}, ownerId={}, fileName={} -> {}",
+                        savedDuplicate.getId(), ownerId, originalFileName, savedDuplicate.getOriginalFileName());
+
+                return savedDuplicate;
             }
 
             // 5. 保存数据库记录
-            File file = new File();
-            file.setOwnerId(ownerId);
-            file.setOriginalFileName(encodedFileName);
-            file.setObjectName(objectName);
-            file.setBucket(defaultBucket);
-            file.setContentType(contentType);
-            file.setSize(size);
-            file.setFileHash(fileHash);
-            file.setStatus(FileStatus.ACTIVE);
+            File file = File.builder()
+                    .ownerId(ownerId)
+                    .folderId(folderId)
+                    .originalFileName(resolvedFileName)
+                    .objectName(objectName)
+                    .bucket(defaultBucket)
+                    .contentType(contentType)
+                    .size(size)
+                    .fileHash(fileHash)
+                    .status(FileStatus.ACTIVE)
+                    .build();
 
             File savedFile = fileRepository.save(file);
             log.info("文件上传成功: fileId={}, ownerId={}, fileName={}",
@@ -117,6 +155,32 @@ public class FileServiceImpl implements FileService {
             }
             throw new RuntimeException("文件上传失败", e);
         }
+    }
+
+    private String resolveFileName(UUID ownerId, UUID folderId, String originalFileName) {
+        String baseName = FilenameUtils.getBaseName(originalFileName);
+        String extension = FilenameUtils.getExtension(originalFileName);
+        String candidateName = originalFileName;
+        String encodedCandidate = URLEncoder.encode(candidateName, StandardCharsets.UTF_8);
+        int counter = 1;
+
+        while (fileNameExists(ownerId, folderId, encodedCandidate)) {
+            String suffix = extension.isEmpty() ? "" : "." + extension;
+            candidateName = String.format("%s(%d)%s", baseName, counter++, suffix);
+            encodedCandidate = URLEncoder.encode(candidateName, StandardCharsets.UTF_8);
+        }
+
+        return encodedCandidate;
+    }
+
+    private boolean fileNameExists(UUID ownerId, UUID folderId, String encodedFileName) {
+        if (folderId == null) {
+            return fileRepository.existsByOwnerIdAndFolderIdIsNullAndOriginalFileNameAndStatus(
+                    ownerId, encodedFileName, FileStatus.ACTIVE);
+        }
+
+        return fileRepository.existsByOwnerIdAndFolderIdAndOriginalFileNameAndStatus(
+                ownerId, folderId, encodedFileName, FileStatus.ACTIVE);
     }
 
     @Override
@@ -207,5 +271,50 @@ public class FileServiceImpl implements FileService {
         fileRepository.save(file);
 
         log.info("文件恢复成功: ownerId={}, fileId={}, fileName={}", ownerId, fileId, file.getOriginalFileName());
+    }
+
+    @Override
+    public List<File> listFilesByFolder(UUID ownerId, UUID folderId) {
+        // 验证文件夹是否存在且属于该用户
+        if (folderId != null) {
+            try {
+                folderService.getFolderDetails(folderId, ownerId);
+            } catch (Exception e) {
+                log.error("文件夹不存在或不属于该用户: folderId={}, ownerId={}", folderId, ownerId);
+                throw new FileException(ErrorCode.FOLDER_NOT_FOUND);
+            }
+        }
+
+        return fileRepository.findByFolderIdAndOwnerIdAndStatus(folderId, ownerId, FileStatus.ACTIVE);
+    }
+
+    @Override
+    public List<File> listUnclassifiedFiles(UUID ownerId) {
+        return fileRepository.findByFolderIdIsNullAndOwnerIdAndStatus(ownerId, FileStatus.ACTIVE);
+    }
+
+    @Override
+    public File moveFileToFolder(UUID ownerId, UUID fileId, UUID targetFolderId) {
+        // 1. 验证文件是否存在且属于该用户
+        File file = getActiveFileById(ownerId, fileId);
+
+        // 2. 验证目标文件夹（如果不为 null）
+        if (targetFolderId != null) {
+            try {
+                folderService.getFolderDetails(targetFolderId, ownerId);
+            } catch (Exception e) {
+                log.error("目标文件夹不存在或不属于该用户: folderId={}, ownerId={}", targetFolderId, ownerId);
+                throw new FileException(ErrorCode.FOLDER_NOT_FOUND);
+            }
+        }
+
+        // 3. 更新文件的 folderId
+        file.setFolderId(targetFolderId);
+        File savedFile = fileRepository.save(file);
+
+        log.info("文件移动成功: fileId={}, ownerId={}, fromFolder={}, toFolder={}",
+                fileId, ownerId, file.getFolderId(), targetFolderId);
+
+        return savedFile;
     }
 }

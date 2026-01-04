@@ -1,20 +1,31 @@
 package com.evorsio.mybox.file;
 
-import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.hibernate.annotations.Comment;
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.type.SqlTypes;
-
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import org.hibernate.annotations.Comment;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
+import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 @Data
 @Entity
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "files")
@@ -33,7 +44,7 @@ public class File {
     @Comment("用户上传时的原始文件名")
     private String originalFileName;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     @Comment("MinIO 中的对象名称（Object Name，通常为 UUID 或路径）")
     private String objectName;
 
@@ -56,6 +67,7 @@ public class File {
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
     @Comment("文件自定义元数据，存储为 JSON 格式")
+    @Builder.Default
     private Map<String, Object> metadata = new HashMap<>();
 
     @Column(nullable = false, updatable = false)
@@ -76,6 +88,7 @@ public class File {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     @Comment("文件状态：ACTIVE / DELETED")
+    @Builder.Default
     private FileStatus status = FileStatus.UPLOADING;
 
     @PrePersist

@@ -21,8 +21,7 @@ public class UserController {
     @GetMapping("/me")
     public ApiResponse<UserInfoResponse> getCurrentUser(Authentication authentication) {
         // 从 JWT 获取用户 ID
-        Object details = authentication.getDetails();
-        UUID userId = UUID.fromString(details.toString());
+        UUID userId = (UUID) authentication.getPrincipal();
 
         UserInfoResponse userInfo = userService.getUserInfo(userId);
         return ApiResponse.success("获取用户信息成功", userInfo);

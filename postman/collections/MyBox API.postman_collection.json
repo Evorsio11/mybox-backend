@@ -1,4 +1,4 @@
-{
+﻿{
   "info": {
     "_postman_id": "208260a3-240c-47b6-83d9-f6c6fcaecfca",
     "name": "MyBox 接口合集",
@@ -47,9 +47,9 @@
                           }
                         },
                         "url": {
-                          "raw": "{{基础地址}}/api/folders/:folderId/rename",
+                          "raw": "{{base_url}}/api/folders/:folderId/rename",
                           "host": [
-                            "{{基础地址}}"
+                            "{{base_url}}"
                           ],
                           "path": [
                             "api",
@@ -60,7 +60,7 @@
                           "variable": [
                             {
                               "key": "folderId",
-                              "value": "{{示例文件夹ID}}"
+                              "value": "{{folder_id}}"
                             }
                           ]
                         }
@@ -92,9 +92,9 @@
                               }
                             },
                             "url": {
-                              "raw": "{{基础地址}}/api/folders/:folderId/rename",
+                              "raw": "{{base_url}}/api/folders/:folderId/rename",
                               "host": [
-                                "{{基础地址}}"
+                                "{{base_url}}"
                               ],
                               "path": [
                                 "api",
@@ -105,7 +105,7 @@
                               "variable": [
                                 {
                                   "key": "folderId",
-                                  "value": "{{示例文件夹ID}}"
+                                  "value": "{{folder_id}}"
                                 }
                               ]
                             }
@@ -150,7 +150,7 @@
                         ],
                         "body": {
                           "mode": "raw",
-                          "raw": "{\n  \"targetParentFolderId\": \"{{目标父文件夹ID}}\"\n}",
+                          "raw": "{\n  \"targetParentFolderId\": \"{{target_parent_folder_id}}\"\n}",
                           "options": {
                             "raw": {
                               "headerFamily": "json",
@@ -159,9 +159,9 @@
                           }
                         },
                         "url": {
-                          "raw": "{{基础地址}}/api/folders/:folderId/move",
+                          "raw": "{{base_url}}/api/folders/:folderId/move",
                           "host": [
-                            "{{基础地址}}"
+                            "{{base_url}}"
                           ],
                           "path": [
                             "api",
@@ -172,7 +172,7 @@
                           "variable": [
                             {
                               "key": "folderId",
-                              "value": "{{示例文件夹ID}}"
+                              "value": "{{folder_id}}"
                             }
                           ]
                         }
@@ -195,7 +195,7 @@
                             ],
                             "body": {
                               "mode": "raw",
-                              "raw": "{\n  \"targetParentFolderId\": \"{{目标父文件夹ID}}\"\n}",
+                              "raw": "{\n  \"targetParentFolderId\": \"{{target_parent_folder_id}}\"\n}",
                               "options": {
                                 "raw": {
                                   "headerFamily": "json",
@@ -204,9 +204,9 @@
                               }
                             },
                             "url": {
-                              "raw": "{{基础地址}}/api/folders/:folderId/move",
+                              "raw": "{{base_url}}/api/folders/:folderId/move",
                               "host": [
-                                "{{基础地址}}"
+                                "{{base_url}}"
                               ],
                               "path": [
                                 "api",
@@ -217,7 +217,7 @@
                               "variable": [
                                 {
                                   "key": "folderId",
-                                  "value": "{{示例文件夹ID}}"
+                                  "value": "{{folder_id}}"
                                 }
                               ]
                             }
@@ -257,9 +257,9 @@
                           }
                         ],
                         "url": {
-                          "raw": "{{基础地址}}/api/folders/:folderId/restore",
+                          "raw": "{{base_url}}/api/folders/:folderId/restore",
                           "host": [
-                            "{{基础地址}}"
+                            "{{base_url}}"
                           ],
                           "path": [
                             "api",
@@ -270,7 +270,7 @@
                           "variable": [
                             {
                               "key": "folderId",
-                              "value": "{{示例文件夹ID}}"
+                              "value": "{{folder_id}}"
                             }
                           ]
                         }
@@ -288,9 +288,9 @@
                               }
                             ],
                             "url": {
-                              "raw": "{{基础地址}}/api/folders/:folderId/restore",
+                              "raw": "{{base_url}}/api/folders/:folderId/restore",
                               "host": [
-                                "{{基础地址}}"
+                                "{{base_url}}"
                               ],
                               "path": [
                                 "api",
@@ -301,7 +301,7 @@
                               "variable": [
                                 {
                                   "key": "folderId",
-                                  "value": "{{示例文件夹ID}}"
+                                  "value": "{{folder_id}}"
                                 }
                               ]
                             }
@@ -341,9 +341,9 @@
                           }
                         ],
                         "url": {
-                          "raw": "{{基础地址}}/api/folders/:folderId/details",
+                          "raw": "{{base_url}}/api/folders/:folderId/details",
                           "host": [
-                            "{{基础地址}}"
+                            "{{base_url}}"
                           ],
                           "path": [
                             "api",
@@ -354,7 +354,7 @@
                           "variable": [
                             {
                               "key": "folderId",
-                              "value": "{{示例文件夹ID}}"
+                              "value": "{{folder_id}}"
                             }
                           ]
                         }
@@ -372,9 +372,9 @@
                               }
                             ],
                             "url": {
-                              "raw": "{{基础地址}}/api/folders/:folderId/details",
+                              "raw": "{{base_url}}/api/folders/:folderId/details",
                               "host": [
-                                "{{基础地址}}"
+                                "{{base_url}}"
                               ],
                               "path": [
                                 "api",
@@ -385,7 +385,7 @@
                               "variable": [
                                 {
                                   "key": "folderId",
-                                  "value": "{{示例文件夹ID}}"
+                                  "value": "{{folder_id}}"
                                 }
                               ]
                             }
@@ -417,9 +417,9 @@
                     "method": "DELETE",
                     "header": [],
                     "url": {
-                      "raw": "{{基础地址}}/api/folders/:folderId",
+                      "raw": "{{base_url}}/api/folders/:folderId",
                       "host": [
-                        "{{基础地址}}"
+                        "{{base_url}}"
                       ],
                       "path": [
                         "api",
@@ -429,7 +429,7 @@
                       "variable": [
                         {
                           "key": "folderId",
-                          "value": "{{示例文件夹ID}}"
+                          "value": "{{folder_id}}"
                         }
                       ]
                     }
@@ -442,9 +442,9 @@
                         "method": "DELETE",
                         "header": [],
                         "url": {
-                          "raw": "{{基础地址}}/api/folders/:folderId",
+                          "raw": "{{base_url}}/api/folders/:folderId",
                           "host": [
-                            "{{基础地址}}"
+                            "{{base_url}}"
                           ],
                           "path": [
                             "api",
@@ -454,7 +454,7 @@
                           "variable": [
                             {
                               "key": "folderId",
-                              "value": "{{示例文件夹ID}}"
+                              "value": "{{folder_id}}"
                             }
                           ]
                         }
@@ -497,9 +497,9 @@
                       }
                     },
                     "url": {
-                      "raw": "{{基础地址}}/api/folders/:folderId",
+                      "raw": "{{base_url}}/api/folders/:folderId",
                       "host": [
-                        "{{基础地址}}"
+                        "{{base_url}}"
                       ],
                       "path": [
                         "api",
@@ -509,7 +509,7 @@
                       "variable": [
                         {
                           "key": "folderId",
-                          "value": "{{示例文件夹ID}}"
+                          "value": "{{folder_id}}"
                         }
                       ]
                     }
@@ -541,9 +541,9 @@
                           }
                         },
                         "url": {
-                          "raw": "{{基础地址}}/api/folders/:folderId",
+                          "raw": "{{base_url}}/api/folders/:folderId",
                           "host": [
-                            "{{基础地址}}"
+                            "{{base_url}}"
                           ],
                           "path": [
                             "api",
@@ -553,7 +553,7 @@
                           "variable": [
                             {
                               "key": "folderId",
-                              "value": "{{示例文件夹ID}}"
+                              "value": "{{folder_id}}"
                             }
                           ]
                         }
@@ -593,9 +593,9 @@
                       }
                     ],
                     "url": {
-                      "raw": "{{基础地址}}/api/folders/roots",
+                      "raw": "{{base_url}}/api/folders/roots",
                       "host": [
-                        "{{基础地址}}"
+                        "{{base_url}}"
                       ],
                       "path": [
                         "api",
@@ -617,9 +617,9 @@
                           }
                         ],
                         "url": {
-                          "raw": "{{基础地址}}/api/folders/roots",
+                          "raw": "{{base_url}}/api/folders/roots",
                           "host": [
-                            "{{基础地址}}"
+                            "{{base_url}}"
                           ],
                           "path": [
                             "api",
@@ -663,9 +663,9 @@
                       }
                     ],
                     "url": {
-                      "raw": "{{基础地址}}/api/folders/children?parentFolderId={{示例父文件夹ID}}",
+                      "raw": "{{base_url}}/api/folders/children?parentFolderId={{parent_folder_id}}",
                       "host": [
-                        "{{基础地址}}"
+                        "{{base_url}}"
                       ],
                       "path": [
                         "api",
@@ -675,7 +675,7 @@
                       "query": [
                         {
                           "key": "parentFolderId",
-                          "value": "{{示例父文件夹ID}}"
+                          "value": "{{parent_folder_id}}"
                         }
                       ]
                     }
@@ -693,9 +693,9 @@
                           }
                         ],
                         "url": {
-                          "raw": "{{基础地址}}/api/folders/children?parentFolderId={{示例父文件夹ID}}",
+                          "raw": "{{base_url}}/api/folders/children?parentFolderId={{parent_folder_id}}",
                           "host": [
-                            "{{基础地址}}"
+                            "{{base_url}}"
                           ],
                           "path": [
                             "api",
@@ -705,7 +705,7 @@
                           "query": [
                             {
                               "key": "parentFolderId",
-                              "value": "{{示例父文件夹ID}}"
+                              "value": "{{parent_folder_id}}"
                             }
                           ]
                         }
@@ -756,9 +756,9 @@
                   }
                 },
                 "url": {
-                  "raw": "{{基础地址}}/api/folders",
+                  "raw": "{{base_url}}/api/folders",
                   "host": [
-                    "{{基础地址}}"
+                    "{{base_url}}"
                   ],
                   "path": [
                     "api",
@@ -793,9 +793,9 @@
                       }
                     },
                     "url": {
-                      "raw": "{{基础地址}}/api/folders",
+                      "raw": "{{base_url}}/api/folders",
                       "host": [
-                        "{{基础地址}}"
+                        "{{base_url}}"
                       ],
                       "path": [
                         "api",
@@ -841,9 +841,9 @@
                       }
                     ],
                     "url": {
-                      "raw": "{{基础地址}}/api/files/config",
+                      "raw": "{{base_url}}/api/files/config",
                       "host": [
-                        "{{基础地址}}"
+                        "{{base_url}}"
                       ],
                       "path": [
                         "api",
@@ -865,9 +865,9 @@
                           }
                         ],
                         "url": {
-                          "raw": "{{基础地址}}/api/files/config",
+                          "raw": "{{base_url}}/api/files/config",
                           "host": [
-                            "{{基础地址}}"
+                            "{{base_url}}"
                           ],
                           "path": [
                             "api",
@@ -919,9 +919,9 @@
                       }
                     },
                     "url": {
-                      "raw": "{{基础地址}}/api/files/config",
+                      "raw": "{{base_url}}/api/files/config",
                       "host": [
-                        "{{基础地址}}"
+                        "{{base_url}}"
                       ],
                       "path": [
                         "api",
@@ -957,9 +957,9 @@
                           }
                         },
                         "url": {
-                          "raw": "{{基础地址}}/api/files/config",
+                          "raw": "{{base_url}}/api/files/config",
                           "host": [
-                            "{{基础地址}}"
+                            "{{base_url}}"
                           ],
                           "path": [
                             "api",
@@ -1017,9 +1017,9 @@
                       ]
                     },
                     "url": {
-                      "raw": "{{基础地址}}/api/files/upload",
+                      "raw": "{{base_url}}/api/files/upload",
                       "host": [
-                        "{{基础地址}}"
+                        "{{base_url}}"
                       ],
                       "path": [
                         "api",
@@ -1055,9 +1055,9 @@
                           ]
                         },
                         "url": {
-                          "raw": "{{基础地址}}/api/files/upload",
+                          "raw": "{{base_url}}/api/files/upload",
                           "host": [
-                            "{{基础地址}}"
+                            "{{base_url}}"
                           ],
                           "path": [
                             "api",
@@ -1106,7 +1106,7 @@
                     ],
                     "body": {
                       "mode": "raw",
-                      "raw": "{\n  \"fileId\": \"{{示例文件ID}}\"\n}",
+                      "raw": "{\n  \"fileId\": \"{{file_id}}\"\n}",
                       "options": {
                         "raw": {
                           "headerFamily": "json",
@@ -1115,9 +1115,9 @@
                       }
                     },
                     "url": {
-                      "raw": "{{基础地址}}/api/files/restore",
+                      "raw": "{{base_url}}/api/files/restore",
                       "host": [
-                        "{{基础地址}}"
+                        "{{base_url}}"
                       ],
                       "path": [
                         "api",
@@ -1144,7 +1144,7 @@
                         ],
                         "body": {
                           "mode": "raw",
-                          "raw": "{\n  \"fileId\": \"{{示例文件ID}}\"\n}",
+                          "raw": "{\n  \"fileId\": \"{{file_id}}\"\n}",
                           "options": {
                             "raw": {
                               "headerFamily": "json",
@@ -1153,9 +1153,9 @@
                           }
                         },
                         "url": {
-                          "raw": "{{基础地址}}/api/files/restore",
+                          "raw": "{{base_url}}/api/files/restore",
                           "host": [
-                            "{{基础地址}}"
+                            "{{base_url}}"
                           ],
                           "path": [
                             "api",
@@ -1204,7 +1204,7 @@
                     ],
                     "body": {
                       "mode": "raw",
-                      "raw": "{\n  \"fileId\": \"{{示例文件ID}}\"\n}",
+                      "raw": "{\n  \"fileId\": \"{{file_id}}\"\n}",
                       "options": {
                         "raw": {
                           "headerFamily": "json",
@@ -1213,9 +1213,9 @@
                       }
                     },
                     "url": {
-                      "raw": "{{基础地址}}/api/files/download",
+                      "raw": "{{base_url}}/api/files/download",
                       "host": [
-                        "{{基础地址}}"
+                        "{{base_url}}"
                       ],
                       "path": [
                         "api",
@@ -1242,7 +1242,7 @@
                         ],
                         "body": {
                           "mode": "raw",
-                          "raw": "{\n  \"fileId\": \"{{示例文件ID}}\"\n}",
+                          "raw": "{\n  \"fileId\": \"{{file_id}}\"\n}",
                           "options": {
                             "raw": {
                               "headerFamily": "json",
@@ -1251,9 +1251,9 @@
                           }
                         },
                         "url": {
-                          "raw": "{{基础地址}}/api/files/download",
+                          "raw": "{{base_url}}/api/files/download",
                           "host": [
-                            "{{基础地址}}"
+                            "{{base_url}}"
                           ],
                           "path": [
                             "api",
@@ -1302,7 +1302,7 @@
                     ],
                     "body": {
                       "mode": "raw",
-                      "raw": "{\n  \"fileId\": \"{{示例文件ID}}\"\n}",
+                      "raw": "{\n  \"fileId\": \"{{file_id}}\"\n}",
                       "options": {
                         "raw": {
                           "headerFamily": "json",
@@ -1311,9 +1311,9 @@
                       }
                     },
                     "url": {
-                      "raw": "{{基础地址}}/api/files/delete",
+                      "raw": "{{base_url}}/api/files/delete",
                       "host": [
-                        "{{基础地址}}"
+                        "{{base_url}}"
                       ],
                       "path": [
                         "api",
@@ -1340,7 +1340,7 @@
                         ],
                         "body": {
                           "mode": "raw",
-                          "raw": "{\n  \"fileId\": \"{{示例文件ID}}\"\n}",
+                          "raw": "{\n  \"fileId\": \"{{file_id}}\"\n}",
                           "options": {
                             "raw": {
                               "headerFamily": "json",
@@ -1349,9 +1349,9 @@
                           }
                         },
                         "url": {
-                          "raw": "{{基础地址}}/api/files/delete",
+                          "raw": "{{base_url}}/api/files/delete",
                           "host": [
-                            "{{基础地址}}"
+                            "{{base_url}}"
                           ],
                           "path": [
                             "api",
@@ -1398,9 +1398,9 @@
                           }
                         ],
                         "url": {
-                          "raw": "{{基础地址}}/api/files/chunk/upload?chunkNumber=1216&file=string&uploadId={{示例上传ID}}",
+                          "raw": "{{base_url}}/api/files/chunk/upload?chunkNumber=1216&file=string&uploadId={{upload_id}}",
                           "host": [
-                            "{{基础地址}}"
+                            "{{base_url}}"
                           ],
                           "path": [
                             "api",
@@ -1419,7 +1419,7 @@
                             },
                             {
                               "key": "uploadId",
-                              "value": "{{示例上传ID}}"
+                              "value": "{{upload_id}}"
                             }
                           ]
                         }
@@ -1437,9 +1437,9 @@
                               }
                             ],
                             "url": {
-                              "raw": "{{基础地址}}/api/files/chunk/upload?chunkNumber=1216&file=string&uploadId={{示例上传ID}}",
+                              "raw": "{{base_url}}/api/files/chunk/upload?chunkNumber=1216&file=string&uploadId={{upload_id}}",
                               "host": [
-                                "{{基础地址}}"
+                                "{{base_url}}"
                               ],
                               "path": [
                                 "api",
@@ -1458,7 +1458,7 @@
                                 },
                                 {
                                   "key": "uploadId",
-                                  "value": "{{示例上传ID}}"
+                                  "value": "{{upload_id}}"
                                 }
                               ]
                             }
@@ -1503,7 +1503,7 @@
                         ],
                         "body": {
                           "mode": "raw",
-                          "raw": "{\n  \"uploadId\": \"{{示例上传ID}}\"\n}",
+                          "raw": "{\n  \"uploadId\": \"{{upload_id}}\"\n}",
                           "options": {
                             "raw": {
                               "headerFamily": "json",
@@ -1512,9 +1512,9 @@
                           }
                         },
                         "url": {
-                          "raw": "{{基础地址}}/api/files/chunk/merge",
+                          "raw": "{{base_url}}/api/files/chunk/merge",
                           "host": [
-                            "{{基础地址}}"
+                            "{{base_url}}"
                           ],
                           "path": [
                             "api",
@@ -1542,7 +1542,7 @@
                             ],
                             "body": {
                               "mode": "raw",
-                              "raw": "{\n  \"uploadId\": \"{{示例上传ID}}\"\n}",
+                              "raw": "{\n  \"uploadId\": \"{{upload_id}}\"\n}",
                               "options": {
                                 "raw": {
                                   "headerFamily": "json",
@@ -1551,9 +1551,9 @@
                               }
                             },
                             "url": {
-                              "raw": "{{基础地址}}/api/files/chunk/merge",
+                              "raw": "{{base_url}}/api/files/chunk/merge",
                               "host": [
-                                "{{基础地址}}"
+                                "{{base_url}}"
                               ],
                               "path": [
                                 "api",
@@ -1612,9 +1612,9 @@
                           }
                         },
                         "url": {
-                          "raw": "{{基础地址}}/api/files/chunk/init",
+                          "raw": "{{base_url}}/api/files/chunk/init",
                           "host": [
-                            "{{基础地址}}"
+                            "{{base_url}}"
                           ],
                           "path": [
                             "api",
@@ -1651,9 +1651,9 @@
                               }
                             },
                             "url": {
-                              "raw": "{{基础地址}}/api/files/chunk/init",
+                              "raw": "{{base_url}}/api/files/chunk/init",
                               "host": [
-                                "{{基础地址}}"
+                                "{{base_url}}"
                               ],
                               "path": [
                                 "api",
@@ -1701,9 +1701,9 @@
                               }
                             ],
                             "url": {
-                              "raw": "{{基础地址}}/api/files/chunk/resume/:uploadId",
+                              "raw": "{{base_url}}/api/files/chunk/resume/:uploadId",
                               "host": [
-                                "{{基础地址}}"
+                                "{{base_url}}"
                               ],
                               "path": [
                                 "api",
@@ -1715,7 +1715,7 @@
                               "variable": [
                                 {
                                   "key": "uploadId",
-                                  "value": "{{示例上传ID}}"
+                                  "value": "{{upload_id}}"
                                 }
                               ]
                             }
@@ -1733,9 +1733,9 @@
                                   }
                                 ],
                                 "url": {
-                                  "raw": "{{基础地址}}/api/files/chunk/resume/:uploadId",
+                                  "raw": "{{base_url}}/api/files/chunk/resume/:uploadId",
                                   "host": [
-                                    "{{基础地址}}"
+                                    "{{base_url}}"
                                   ],
                                   "path": [
                                     "api",
@@ -1747,7 +1747,7 @@
                                   "variable": [
                                     {
                                       "key": "uploadId",
-                                      "value": "{{示例上传ID}}"
+                                      "value": "{{upload_id}}"
                                     }
                                   ]
                                 }
@@ -1793,9 +1793,9 @@
                               }
                             ],
                             "url": {
-                              "raw": "{{基础地址}}/api/files/chunk/progress/:uploadId",
+                              "raw": "{{base_url}}/api/files/chunk/progress/:uploadId",
                               "host": [
-                                "{{基础地址}}"
+                                "{{base_url}}"
                               ],
                               "path": [
                                 "api",
@@ -1807,7 +1807,7 @@
                               "variable": [
                                 {
                                   "key": "uploadId",
-                                  "value": "{{示例上传ID}}"
+                                  "value": "{{upload_id}}"
                                 }
                               ]
                             }
@@ -1825,9 +1825,9 @@
                                   }
                                 ],
                                 "url": {
-                                  "raw": "{{基础地址}}/api/files/chunk/progress/:uploadId",
+                                  "raw": "{{base_url}}/api/files/chunk/progress/:uploadId",
                                   "host": [
-                                    "{{基础地址}}"
+                                    "{{base_url}}"
                                   ],
                                   "path": [
                                     "api",
@@ -1839,7 +1839,7 @@
                                   "variable": [
                                     {
                                       "key": "uploadId",
-                                      "value": "{{示例上传ID}}"
+                                      "value": "{{upload_id}}"
                                     }
                                   ]
                                 }
@@ -1887,7 +1887,7 @@
                         ],
                         "body": {
                           "mode": "raw",
-                          "raw": "{\n  \"uploadId\": \"{{示例上传ID}}\"\n}",
+                          "raw": "{\n  \"uploadId\": \"{{upload_id}}\"\n}",
                           "options": {
                             "raw": {
                               "headerFamily": "json",
@@ -1896,9 +1896,9 @@
                           }
                         },
                         "url": {
-                          "raw": "{{基础地址}}/api/files/chunk/cancel",
+                          "raw": "{{base_url}}/api/files/chunk/cancel",
                           "host": [
-                            "{{基础地址}}"
+                            "{{base_url}}"
                           ],
                           "path": [
                             "api",
@@ -1926,7 +1926,7 @@
                             ],
                             "body": {
                               "mode": "raw",
-                              "raw": "{\n  \"uploadId\": \"{{示例上传ID}}\"\n}",
+                              "raw": "{\n  \"uploadId\": \"{{upload_id}}\"\n}",
                               "options": {
                                 "raw": {
                                   "headerFamily": "json",
@@ -1935,9 +1935,9 @@
                               }
                             },
                             "url": {
-                              "raw": "{{基础地址}}/api/files/chunk/cancel",
+                              "raw": "{{base_url}}/api/files/chunk/cancel",
                               "host": [
-                                "{{基础地址}}"
+                                "{{base_url}}"
                               ],
                               "path": [
                                 "api",
@@ -1985,9 +1985,9 @@
                       }
                     ],
                     "url": {
-                      "raw": "{{基础地址}}/api/files/deleted",
+                      "raw": "{{base_url}}/api/files/deleted",
                       "host": [
-                        "{{基础地址}}"
+                        "{{base_url}}"
                       ],
                       "path": [
                         "api",
@@ -2009,9 +2009,9 @@
                           }
                         ],
                         "url": {
-                          "raw": "{{基础地址}}/api/files/deleted",
+                          "raw": "{{base_url}}/api/files/deleted",
                           "host": [
-                            "{{基础地址}}"
+                            "{{base_url}}"
                           ],
                           "path": [
                             "api",
@@ -2052,9 +2052,9 @@
                   }
                 ],
                 "url": {
-                  "raw": "{{基础地址}}/api/files",
+                  "raw": "{{base_url}}/api/files",
                   "host": [
-                    "{{基础地址}}"
+                    "{{base_url}}"
                   ],
                   "path": [
                     "api",
@@ -2075,9 +2075,9 @@
                       }
                     ],
                     "url": {
-                      "raw": "{{基础地址}}/api/files",
+                      "raw": "{{base_url}}/api/files",
                       "host": [
-                        "{{基础地址}}"
+                        "{{base_url}}"
                       ],
                       "path": [
                         "api",
@@ -2126,9 +2126,9 @@
                           }
                         ],
                         "url": {
-                          "raw": "{{基础地址}}/api/devices/:deviceId/heartbeat",
+                          "raw": "{{base_url}}/api/devices/:deviceId/heartbeat",
                           "host": [
-                            "{{基础地址}}"
+                            "{{base_url}}"
                           ],
                           "path": [
                             "api",
@@ -2139,7 +2139,7 @@
                           "variable": [
                             {
                               "key": "deviceId",
-                              "value": "{{示例设备ID}}"
+                              "value": "{{device_id}}"
                             }
                           ]
                         }
@@ -2157,9 +2157,9 @@
                               }
                             ],
                             "url": {
-                              "raw": "{{基础地址}}/api/devices/:deviceId/heartbeat",
+                              "raw": "{{base_url}}/api/devices/:deviceId/heartbeat",
                               "host": [
-                                "{{基础地址}}"
+                                "{{base_url}}"
                               ],
                               "path": [
                                 "api",
@@ -2170,7 +2170,7 @@
                               "variable": [
                                 {
                                   "key": "deviceId",
-                                  "value": "{{示例设备ID}}"
+                                  "value": "{{device_id}}"
                                 }
                               ]
                             }
@@ -2207,9 +2207,9 @@
                       }
                     ],
                     "url": {
-                      "raw": "{{基础地址}}/api/devices/:deviceId",
+                      "raw": "{{base_url}}/api/devices/:deviceId",
                       "host": [
-                        "{{基础地址}}"
+                        "{{base_url}}"
                       ],
                       "path": [
                         "api",
@@ -2219,7 +2219,7 @@
                       "variable": [
                         {
                           "key": "deviceId",
-                          "value": "{{示例设备ID}}"
+                          "value": "{{device_id}}"
                         }
                       ]
                     }
@@ -2237,9 +2237,9 @@
                           }
                         ],
                         "url": {
-                          "raw": "{{基础地址}}/api/devices/:deviceId",
+                          "raw": "{{base_url}}/api/devices/:deviceId",
                           "host": [
-                            "{{基础地址}}"
+                            "{{base_url}}"
                           ],
                           "path": [
                             "api",
@@ -2249,7 +2249,7 @@
                           "variable": [
                             {
                               "key": "deviceId",
-                              "value": "{{示例设备ID}}"
+                              "value": "{{device_id}}"
                             }
                           ]
                         }
@@ -2286,9 +2286,9 @@
                   }
                 ],
                 "url": {
-                  "raw": "{{基础地址}}/api/devices",
+                  "raw": "{{base_url}}/api/devices",
                   "host": [
-                    "{{基础地址}}"
+                    "{{base_url}}"
                   ],
                   "path": [
                     "api",
@@ -2309,9 +2309,9 @@
                       }
                     ],
                     "url": {
-                      "raw": "{{基础地址}}/api/devices",
+                      "raw": "{{base_url}}/api/devices",
                       "host": [
-                        "{{基础地址}}"
+                        "{{base_url}}"
                       ],
                       "path": [
                         "api",
@@ -2362,7 +2362,7 @@
                     ],
                     "body": {
                       "mode": "raw",
-                      "raw": "{\n  \"email\": \"{{示例邮箱}}\",\n  \"password\": \"{{示例密码}}\",\n  \"username\": \"{{示例用户名}}\",\n  \"deviceInfo\": {\n    \"deviceName\": \"{{示例设备名称}}\",\n    \"deviceType\": \"{{示例设备类型}}\",\n    \"deviceId\": \"{{示例设备ID}}\",\n    \"osName\": \"{{示例操作系统}}\",\n    \"osVersion\": \"{{示例操作系统版本}}\"\n  }\n}",
+                      "raw": "{\n  \"email\": \"{{user_email}}\",\n  \"password\": \"{{user_password}}\",\n  \"username\": \"{{user_name}}\",\n  \"deviceInfo\": {\n    \"deviceName\": \"{{device_name}}\",\n    \"deviceType\": \"{{device_type}}\",\n    \"deviceId\": \"{{device_id}}\",\n    \"osName\": \"{{os_name}}\",\n    \"osVersion\": \"{{os_version}}\"\n  }\n}",
                       "options": {
                         "raw": {
                           "headerFamily": "json",
@@ -2371,9 +2371,9 @@
                       }
                     },
                     "url": {
-                      "raw": "{{基础地址}}/api/auth/register",
+                      "raw": "{{base_url}}/api/auth/register",
                       "host": [
-                        "{{基础地址}}"
+                        "{{base_url}}"
                       ],
                       "path": [
                         "api",
@@ -2400,7 +2400,7 @@
                         ],
                         "body": {
                           "mode": "raw",
-                          "raw": "{\n  \"email\": \"{{示例邮箱}}\",\n  \"password\": \"{{示例密码}}\",\n  \"username\": \"{{示例用户名}}\",\n  \"deviceInfo\": {\n    \"deviceName\": \"{{示例设备名称}}\",\n    \"deviceType\": \"{{示例设备类型}}\",\n    \"deviceId\": \"{{示例设备ID}}\",\n    \"osName\": \"{{示例操作系统}}\",\n    \"osVersion\": \"{{示例操作系统版本}}\"\n  }\n}",
+                          "raw": "{\n  \"email\": \"{{user_email}}\",\n  \"password\": \"{{user_password}}\",\n  \"username\": \"{{user_name}}\",\n  \"deviceInfo\": {\n    \"deviceName\": \"{{device_name}}\",\n    \"deviceType\": \"{{device_type}}\",\n    \"deviceId\": \"{{device_id}}\",\n    \"osName\": \"{{os_name}}\",\n    \"osVersion\": \"{{os_version}}\"\n  }\n}",
                           "options": {
                             "raw": {
                               "headerFamily": "json",
@@ -2409,9 +2409,9 @@
                           }
                         },
                         "url": {
-                          "raw": "{{基础地址}}/api/auth/register",
+                          "raw": "{{base_url}}/api/auth/register",
                           "host": [
-                            "{{基础地址}}"
+                            "{{base_url}}"
                           ],
                           "path": [
                             "api",
@@ -2460,7 +2460,7 @@
                     ],
                     "body": {
                       "mode": "raw",
-                      "raw": "{\n  \"refreshToken\": \"{{示例刷新令牌}}\"\n}",
+                      "raw": "{\n  \"refreshToken\": \"{{refresh_token}}\"\n}",
                       "options": {
                         "raw": {
                           "headerFamily": "json",
@@ -2469,9 +2469,9 @@
                       }
                     },
                     "url": {
-                      "raw": "{{基础地址}}/api/auth/refresh",
+                      "raw": "{{base_url}}/api/auth/refresh",
                       "host": [
-                        "{{基础地址}}"
+                        "{{base_url}}"
                       ],
                       "path": [
                         "api",
@@ -2498,7 +2498,7 @@
                         ],
                         "body": {
                           "mode": "raw",
-                          "raw": "{\n  \"refreshToken\": \"{{示例刷新令牌}}\"\n}",
+                          "raw": "{\n  \"refreshToken\": \"{{refresh_token}}\"\n}",
                           "options": {
                             "raw": {
                               "headerFamily": "json",
@@ -2507,9 +2507,9 @@
                           }
                         },
                         "url": {
-                          "raw": "{{基础地址}}/api/auth/refresh",
+                          "raw": "{{base_url}}/api/auth/refresh",
                           "host": [
-                            "{{基础地址}}"
+                            "{{base_url}}"
                           ],
                           "path": [
                             "api",
@@ -2558,7 +2558,7 @@
                     ],
                     "body": {
                       "mode": "raw",
-                      "raw": "{\n  \"password\": \"{{示例密码}}\",\n  \"username\": \"{{示例用户名}}\",\n  \"deviceInfo\": {\n    \"deviceName\": \"{{示例设备名称}}\",\n    \"deviceType\": \"{{示例设备类型}}\",\n    \"deviceId\": \"{{示例设备ID}}\",\n    \"osName\": \"{{示例操作系统}}\",\n    \"osVersion\": \"{{示例操作系统版本}}\"\n  }\n}",
+                      "raw": "{\n  \"password\": \"{{user_password}}\",\n  \"username\": \"{{user_name}}\",\n  \"deviceInfo\": {\n    \"deviceName\": \"{{device_name}}\",\n    \"deviceType\": \"{{device_type}}\",\n    \"deviceId\": \"{{device_id}}\",\n    \"osName\": \"{{os_name}}\",\n    \"osVersion\": \"{{os_version}}\"\n  }\n}",
                       "options": {
                         "raw": {
                           "headerFamily": "json",
@@ -2567,9 +2567,9 @@
                       }
                     },
                     "url": {
-                      "raw": "{{基础地址}}/api/auth/login",
+                      "raw": "{{base_url}}/api/auth/login",
                       "host": [
-                        "{{基础地址}}"
+                        "{{base_url}}"
                       ],
                       "path": [
                         "api",
@@ -2596,7 +2596,7 @@
                         ],
                         "body": {
                           "mode": "raw",
-                          "raw": "{\n  \"password\": \"{{示例密码}}\",\n  \"username\": \"{{示例用户名}}\",\n  \"deviceInfo\": {\n    \"deviceName\": \"{{示例设备名称}}\",\n    \"deviceType\": \"{{示例设备类型}}\",\n    \"deviceId\": \"{{示例设备ID}}\",\n    \"osName\": \"{{示例操作系统}}\",\n    \"osVersion\": \"{{示例操作系统版本}}\"\n  }\n}",
+                          "raw": "{\n  \"password\": \"{{user_password}}\",\n  \"username\": \"{{user_name}}\",\n  \"deviceInfo\": {\n    \"deviceName\": \"{{device_name}}\",\n    \"deviceType\": \"{{device_type}}\",\n    \"deviceId\": \"{{device_id}}\",\n    \"osName\": \"{{os_name}}\",\n    \"osVersion\": \"{{os_version}}\"\n  }\n}",
                           "options": {
                             "raw": {
                               "headerFamily": "json",
@@ -2605,9 +2605,9 @@
                           }
                         },
                         "url": {
-                          "raw": "{{基础地址}}/api/auth/login",
+                          "raw": "{{base_url}}/api/auth/login",
                           "host": [
-                            "{{基础地址}}"
+                            "{{base_url}}"
                           ],
                           "path": [
                             "api",
@@ -2657,9 +2657,9 @@
                       }
                     ],
                     "url": {
-                      "raw": "{{基础地址}}/api/users/me",
+                      "raw": "{{base_url}}/api/users/me",
                       "host": [
-                        "{{基础地址}}"
+                        "{{base_url}}"
                       ],
                       "path": [
                         "api",
@@ -2681,9 +2681,9 @@
                           }
                         ],
                         "url": {
-                          "raw": "{{基础地址}}/api/users/me",
+                          "raw": "{{base_url}}/api/users/me",
                           "host": [
-                            "{{基础地址}}"
+                            "{{base_url}}"
                           ],
                           "path": [
                             "api",

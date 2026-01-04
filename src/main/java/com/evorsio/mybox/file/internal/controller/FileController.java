@@ -1,15 +1,11 @@
 package com.evorsio.mybox.file.internal.controller;
 
-import com.evorsio.mybox.common.ApiResponse;
-import com.evorsio.mybox.file.File;
-import com.evorsio.mybox.file.FileIdRequest;
-import com.evorsio.mybox.file.FileUploadResponse;
-import com.evorsio.mybox.file.FileConfigService;
-import com.evorsio.mybox.file.FileService;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import java.io.InputStream;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.UUID;
+
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -17,14 +13,28 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.InputStream;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-import java.util.List;
-import java.util.UUID;
+import com.evorsio.mybox.common.ApiResponse;
+import com.evorsio.mybox.file.File;
+import com.evorsio.mybox.file.FileConfigService;
+import com.evorsio.mybox.file.FileIdRequest;
+import com.evorsio.mybox.file.FileMoveRequest;
+import com.evorsio.mybox.file.FileService;
+import com.evorsio.mybox.file.FileUploadResponse;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Validated
@@ -38,7 +48,8 @@ public class FileController {
     @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ApiResponse<List<FileUploadResponse>> upload(
             Authentication authentication,
-            @RequestParam("files") List<MultipartFile> files
+            @RequestParam("files") List<MultipartFile> files,
+            @RequestParam(value = "folderId", required = false) UUID folderId
     ) {
         UUID ownerId = (UUID) authentication.getPrincipal();
 
@@ -52,6 +63,7 @@ public class FileController {
                     try {
                         File uploadedFile = fileService.uploadFile(
                                 ownerId,
+                                folderId,
                                 file.getOriginalFilename(),
                                 file.getSize(),
                                 file.getContentType(),
@@ -78,7 +90,21 @@ public class FileController {
                 })
                 .toList();
 
-        return ApiResponse.success("文件上传完成", results);
+        // 统计成功和失败的数量
+        long successCount = results.stream().filter(FileUploadResponse::isSuccess).count();
+        long failCount = results.size() - successCount;
+
+        // 根据结果构建更清晰的响应消息
+        String message;
+        if (failCount == 0) {
+            message = String.format("全部上传成功（%d个文件）", successCount);
+        } else if (successCount == 0) {
+            message = String.format("全部上传失败（%d个文件）", failCount);
+        } else {
+            message = String.format("部分上传成功（成功%d个，失败%d个）", successCount, failCount);
+        }
+
+        return ApiResponse.success(message, results);
     }
 
     /**
@@ -176,5 +202,42 @@ public class FileController {
         UUID ownerId = (UUID) authentication.getPrincipal();
         fileService.restoreFile(ownerId, request.getFileId());
         return ApiResponse.success();
+    }
+
+    /**
+     * 获取指定文件夹内的文件列表
+     */
+    @GetMapping("/folder/{folderId}")
+    public ApiResponse<List<File>> listFilesByFolder(
+            Authentication authentication,
+            @PathVariable UUID folderId
+    ) {
+        UUID ownerId = (UUID) authentication.getPrincipal();
+        List<File> files = fileService.listFilesByFolder(ownerId, folderId);
+        return ApiResponse.success("获取文件夹内文件列表成功", files);
+    }
+
+    /**
+     * 获取未分类文件列表（folderId 为 null）
+     */
+    @GetMapping("/unclassified")
+    public ApiResponse<List<File>> listUnclassifiedFiles(Authentication authentication) {
+        UUID ownerId = (UUID) authentication.getPrincipal();
+        List<File> files = fileService.listUnclassifiedFiles(ownerId);
+        return ApiResponse.success("获取未分类文件列表成功", files);
+    }
+
+    /**
+     * 移动文件到指定文件夹
+     */
+    @PutMapping("/{fileId}/move")
+    public ApiResponse<File> moveFileToFolder(
+            Authentication authentication,
+            @PathVariable UUID fileId,
+            @Valid @RequestBody FileMoveRequest request
+    ) {
+        UUID ownerId = (UUID) authentication.getPrincipal();
+        File movedFile = fileService.moveFileToFolder(ownerId, fileId, request.getTargetFolderId());
+        return ApiResponse.success("文件移动成功", movedFile);
     }
 }

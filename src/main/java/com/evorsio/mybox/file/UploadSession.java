@@ -1,24 +1,30 @@
 package com.evorsio.mybox.file;
 
-import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.type.SqlTypes;
-
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
+import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 @Entity
-@Table(name = "upload_sessions",
-    uniqueConstraints = {
-        @UniqueConstraint(name = "uk_upload_user_file", columnNames = {"owner_id", "original_file_name", "file_size"})
-    }
-)
+@Table(name = "upload_sessions")
 @Data
 @Builder
 @NoArgsConstructor
@@ -61,6 +67,12 @@ public class UploadSession {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private UploadStatus status;
+
+    /**
+     * 文件唯一标识（用于统一接口关联分片）
+     */
+    @Column(length = 255)
+    private String fileIdentifier;
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")

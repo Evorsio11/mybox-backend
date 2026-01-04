@@ -1,6 +1,9 @@
 package com.evorsio.mybox.auth;
 
+import java.util.UUID;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -13,4 +16,6 @@ public class TokenResponse {
     private String refreshToken;
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private String deviceToken;
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private UUID deviceId;
 }
