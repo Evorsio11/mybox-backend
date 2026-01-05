@@ -7,16 +7,21 @@ import java.util.UUID;
 @UtilityClass
 public class RedisKeyConstants {
 
-    // Redis 类型名
+    // ================== 类型名 ==================
     public static final String REDIS_REFRESH_TOKEN = "refreshToken";
     public static final String REDIS_HEARTBEAT = "heartbeat";
     public static final String REDIS_TOKEN_BLACKLIST = "tokenBlacklist";
 
-    // Access Token 黑名单过期时间（24小时）
-    public static final long TOKEN_BLACKLIST_TTL = 24 * 60 * 60;
+    // 🔐 密码重置
+    public static final String REDIS_PASSWORD_RESET = "passwordReset";
+    public static final String REDIS_PASSWORD_RESET_RATE_LIMIT = "passwordResetRateLimit";
 
+    // ================== Key 生成 ==================
 
-    //格式：<project>:<module>:<type>:<userId>
+    /**
+     * RefreshToken
+     * mybox:auth:refreshToken:{userId}
+     */
     public static String refreshTokenKey(UUID userId) {
         return composeKey(
                 MyboxConstants.PROJECT,
@@ -26,6 +31,10 @@ public class RedisKeyConstants {
         );
     }
 
+    /**
+     * 心跳
+     * mybox:device:heartbeat:{deviceId}
+     */
     public static String heartbeatKey(UUID deviceId) {
         return composeKey(
                 MyboxConstants.PROJECT,
@@ -36,9 +45,8 @@ public class RedisKeyConstants {
     }
 
     /**
-     * 生成 Token 黑名单键
-     * 格式：mybox:auth:tokenBlacklist:{userId}:{tokenHash}
-     * 使用 token 的哈希值避免键过长
+     * AccessToken 黑名单
+     * mybox:auth:tokenBlacklist:{userId}:{tokenHash}
      */
     public static String tokenBlacklistKey(UUID userId, String token) {
         String tokenHash = String.valueOf(Math.abs(token.hashCode()));
@@ -51,6 +59,36 @@ public class RedisKeyConstants {
         );
     }
 
+    /**
+     * 🔐 密码重置 Token
+     * mybox:auth:passwordReset:{token}
+     */
+    public static String passwordResetKey(String token) {
+        return composeKey(
+                MyboxConstants.PROJECT,
+                MyboxConstants.MODULE_AUTH,
+                REDIS_PASSWORD_RESET,
+                token
+        );
+    }
+
+    /**
+     * 🔐 密码重置请求限流（按邮箱）
+     * mybox:auth:passwordResetRateLimit:{email}
+     */
+    public static String passwordResetRateLimitKey(String email) {
+        return composeKey(
+                MyboxConstants.PROJECT,
+                MyboxConstants.MODULE_AUTH,
+                REDIS_PASSWORD_RESET_RATE_LIMIT,
+                email.toLowerCase()
+        );
+    }
+
+    /**
+     * 限流（通用）
+     * mybox:{module}:rateLimit:{method}
+     */
     public static String rateLimitKey(String module, String methodName) {
         return composeKey(
                 MyboxConstants.PROJECT,

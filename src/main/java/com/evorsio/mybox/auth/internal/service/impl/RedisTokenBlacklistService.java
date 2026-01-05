@@ -1,6 +1,7 @@
 package com.evorsio.mybox.auth.internal.service.impl;
 
 import com.evorsio.mybox.auth.TokenBlacklistService;
+import com.evorsio.mybox.auth.internal.properties.AuthRedisProperties;
 import com.evorsio.mybox.common.RedisKeyConstants;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,6 +22,7 @@ import java.util.concurrent.TimeUnit;
 public class RedisTokenBlacklistService implements TokenBlacklistService {
 
     private final RedisTemplate<String, String> redisTemplate;
+    private final AuthRedisProperties authRedisProperties;
 
     @Override
     public void addToBlacklist(UUID userId, String token) {
@@ -31,7 +33,7 @@ public class RedisTokenBlacklistService implements TokenBlacklistService {
         redisTemplate.opsForValue().set(
                 key,
                 value,
-                RedisKeyConstants.TOKEN_BLACKLIST_TTL,
+                authRedisProperties.getTokenBlacklistTtlInSeconds(),
                 TimeUnit.SECONDS
         );
 

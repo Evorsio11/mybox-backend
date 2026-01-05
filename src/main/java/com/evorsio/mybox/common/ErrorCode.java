@@ -26,6 +26,7 @@ public enum ErrorCode {
     DEVICE_ALREADY_DELETED("DEVICE_1503", "设备已被删除", HttpStatus.BAD_REQUEST),
     DEVICE_NOT_ACTIVE("DEVICE_1504", "设备未激活或被禁用", HttpStatus.FORBIDDEN),
     DEVICE_OFFLINE("DEVICE_1505", "设备离线", HttpStatus.CONFLICT),
+    DEVICE_TYPE_INVALID("DEVICE_1506", "设备类型无效，支持的类型：NAS、DESKTOP、LAPTOP、MOBILE、TABLET、SERVER", HttpStatus.BAD_REQUEST),
 
 
     // 参数校验 1100

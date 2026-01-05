@@ -1,28 +1,20 @@
 package com.evorsio.mybox.device.internal.service.impl;
 
+import com.evorsio.mybox.auth.DeviceInfoDto;
+import com.evorsio.mybox.common.ErrorCode;
+import com.evorsio.mybox.device.*;
+import com.evorsio.mybox.device.internal.exception.DeviceException;
+import com.evorsio.mybox.device.internal.mapper.DeviceMapper;
+import com.evorsio.mybox.device.internal.repository.DeviceRepository;
+import com.evorsio.mybox.device.internal.util.DeviceUtil;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-
-import org.springframework.stereotype.Service;
-
-import com.evorsio.mybox.auth.DeviceInfoDto;
-import com.evorsio.mybox.common.ErrorCode;
-import com.evorsio.mybox.device.Device;
-import com.evorsio.mybox.device.DeviceLoginResponse;
-import com.evorsio.mybox.device.DeviceResponse;
-import com.evorsio.mybox.device.DeviceService;
-import com.evorsio.mybox.device.DeviceStatus;
-import com.evorsio.mybox.device.DeviceType;
-import com.evorsio.mybox.device.internal.exception.DeviceException;
-import com.evorsio.mybox.device.internal.mapper.DeviceMapper;
-import com.evorsio.mybox.device.internal.repository.DeviceRepository;
-import com.evorsio.mybox.device.internal.service.DeviceOnlineStatusService;
-import com.evorsio.mybox.device.internal.util.DeviceUtil;
-
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service
@@ -238,13 +230,13 @@ public class DeviceServiceImpl implements DeviceService {
      * @param fingerprint  指纹
      * @param deviceToken  设备令牌，可为 null（注册阶段）
      */
-    private Device buildDevice(UUID userId, UUID deviceId, DeviceInfoDto deviceInfo, 
+    private Device buildDevice(UUID userId, UUID deviceId, DeviceInfoDto deviceInfo,
                               String fingerprint, String deviceToken) {
         Device device = new Device();
         device.setDeviceId(deviceId);
         device.setUserId(userId);
         device.setDeviceName(deviceInfo.getDeviceName());
-        device.setDeviceType(DeviceType.valueOf(deviceInfo.getDeviceType()));
+        device.setDeviceType(DeviceType.fromString(deviceInfo.getDeviceType()));
         device.setOsName(deviceInfo.getOsName());
         device.setOsVersion(deviceInfo.getOsVersion());
         device.setFingerprint(fingerprint);

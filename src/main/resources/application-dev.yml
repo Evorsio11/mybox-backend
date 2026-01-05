@@ -46,6 +46,10 @@ mybox:
       issuer: mybox-server
       audience: mybox-client
       token-prefix: Bearer
+    redis:
+      token-blacklist-ttl: 24h       # Access Token 黑名单过期时间：24小时
+      password-reset-ttl: 15m        # 密码重置 Token 有效期：15分钟
+      password-reset-rate-limit-ttl: 1h  # 密码重置请求限流：1小时
     rate-limit:
       # 全局默认配置
       enabled: true                    # 限流功能总开关
@@ -78,6 +82,7 @@ mybox:
         window: 1m                     # 时间窗口
         max-requests: 10               # 最大请求次数
         scope: user                    # 按用户限流
+
   common:
     cors:
       allowed-origins: http://192.168.1.11:3000, http://localhost:3000
