@@ -1,4 +1,4 @@
-package com.evorsio.mybox.device.internal.service.impl;
+package com.evorsio.mybox.device.internal.service;
 
 import com.evorsio.mybox.common.RedisKeyConstants;
 import lombok.RequiredArgsConstructor;

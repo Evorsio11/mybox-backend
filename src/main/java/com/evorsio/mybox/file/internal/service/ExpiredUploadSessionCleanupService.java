@@ -1,4 +1,4 @@
-package com.evorsio.mybox.file.service;
+package com.evorsio.mybox.file.internal.service;
 
 import com.evorsio.mybox.file.FileChunk;
 import com.evorsio.mybox.file.MinioStorageService;

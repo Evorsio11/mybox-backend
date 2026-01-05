@@ -6,6 +6,7 @@ import com.evorsio.mybox.device.*;
 import com.evorsio.mybox.device.internal.exception.DeviceException;
 import com.evorsio.mybox.device.internal.mapper.DeviceMapper;
 import com.evorsio.mybox.device.internal.repository.DeviceRepository;
+import com.evorsio.mybox.device.internal.service.DeviceOnlineStatusService;
 import com.evorsio.mybox.device.internal.util.DeviceUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

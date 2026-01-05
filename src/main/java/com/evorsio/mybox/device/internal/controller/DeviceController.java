@@ -17,7 +17,7 @@ import com.evorsio.mybox.device.Device;
 import com.evorsio.mybox.device.DeviceResponse;
 import com.evorsio.mybox.device.DeviceService;
 import com.evorsio.mybox.device.internal.mapper.DeviceMapper;
-import com.evorsio.mybox.device.internal.service.impl.DeviceOnlineStatusService;
+import com.evorsio.mybox.device.internal.service.DeviceOnlineStatusService;
 
 import lombok.RequiredArgsConstructor;
 

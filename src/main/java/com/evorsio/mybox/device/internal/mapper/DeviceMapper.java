@@ -4,7 +4,7 @@ import com.evorsio.mybox.device.Device;
 import com.evorsio.mybox.device.DeviceResponse;
 import com.evorsio.mybox.device.DeviceStatus;
 import com.evorsio.mybox.device.OnlineStatus;
-import com.evorsio.mybox.device.internal.service.impl.DeviceOnlineStatusService;
+import com.evorsio.mybox.device.internal.service.DeviceOnlineStatusService;
 import org.mapstruct.Context;
 import org.mapstruct.Mapper;
 import org.mapstruct.AfterMapping;
