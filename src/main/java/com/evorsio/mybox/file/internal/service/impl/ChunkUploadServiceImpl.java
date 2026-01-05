@@ -23,6 +23,9 @@ import com.evorsio.mybox.file.ChunkUploadService;
 import com.evorsio.mybox.file.File;
 import com.evorsio.mybox.file.FileChunk;
 import com.evorsio.mybox.file.FileConfigService;
+import com.evorsio.mybox.file.FileRecord;
+import com.evorsio.mybox.file.FileService;
+import com.evorsio.mybox.file.FileService.FileResult;
 import com.evorsio.mybox.file.FileStatus;
 import com.evorsio.mybox.file.MinioStorageService;
 import com.evorsio.mybox.file.UnifiedChunkUploadRequest;
@@ -31,9 +34,9 @@ import com.evorsio.mybox.file.UploadSession;
 import com.evorsio.mybox.file.UploadStatus;
 import com.evorsio.mybox.file.internal.exception.FileException;
 import com.evorsio.mybox.file.internal.repository.FileChunkRepository;
-import com.evorsio.mybox.file.internal.repository.FileRepository;
+import com.evorsio.mybox.file.internal.repository.FileRecordRepository;
 import com.evorsio.mybox.file.internal.repository.UploadSessionRepository;
-import com.evorsio.mybox.file.service.ChunkUploadConcurrencyManager;
+import com.evorsio.mybox.file.internal.util.ChunkUploadConcurrencyManager;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -44,10 +47,11 @@ import lombok.extern.slf4j.Slf4j;
 public class ChunkUploadServiceImpl implements ChunkUploadService {
     private final UploadSessionRepository uploadSessionRepository;
     private final FileChunkRepository fileChunkRepository;
-    private final FileRepository fileRepository;
+    private final FileRecordRepository fileRecordRepository;
     private final MinioStorageService minioStorageService;
     private final ChunkUploadConcurrencyManager concurrencyManager;
     private final FileConfigService fileConfigService;
+    private final FileService fileService;
 
     @Value("${minio.bucket}")
     private String defaultBucket;
@@ -187,7 +191,7 @@ public class ChunkUploadServiceImpl implements ChunkUploadService {
         }
 
         // 2. 校验存储空间
-        long usedSize = fileRepository.sumActiveFileSizeByOwnerId(ownerId, FileStatus.ACTIVE);
+        long usedSize = fileRecordRepository.sumActiveFileRecordSizeByOwnerId(ownerId, FileStatus.ACTIVE);
         if (usedSize + request.getFileSize() > fileConfigService.getMaxTotalStorageSize()) {
             throw new FileException(ErrorCode.STORAGE_FULL);
         }
@@ -275,10 +279,10 @@ public class ChunkUploadServiceImpl implements ChunkUploadService {
                 .isEmpty();
 
         // 检查是否有活跃的文件记录使用相同文件名
-        boolean fileExists = fileRepository.existsByOwnerIdAndFolderIdIsNullAndOriginalFileNameAndStatus(
+        boolean fileRecordExists = fileRecordRepository.existsByOwnerIdAndFolderIdIsNullAndOriginalFileNameAndStatus(
                 ownerId, fileName, FileStatus.ACTIVE);
 
-        return sessionExists || fileExists;
+        return sessionExists || fileRecordExists;
     }
 
     /**
@@ -417,7 +421,7 @@ public class ChunkUploadServiceImpl implements ChunkUploadService {
     }
 
     private boolean fileNameExists(UUID ownerId, String fileName) {
-        return fileRepository.existsByOwnerIdAndFolderIdIsNullAndOriginalFileNameAndStatus(
+        return fileRecordRepository.existsByOwnerIdAndFolderIdIsNullAndOriginalFileNameAndStatus(
                 ownerId, fileName, FileStatus.ACTIVE);
     }
 
@@ -511,15 +515,18 @@ public class ChunkUploadServiceImpl implements ChunkUploadService {
             
             log.info("[合并分片] Hash计算耗时: {}ms, hash={}", System.currentTimeMillis() - hashStart, fileHash);
 
-            // 6. 检查是否存在相同hash的文件（内容去重）
-            File existingFile = fileRepository.findByOwnerIdAndFileHashAndStatus(ownerId, fileHash, FileStatus.ACTIVE);
-            
-            String finalObjectName;
-            if (existingFile != null) {
-                // 发现重复内容，复用已存在的对象
-                log.info("[内容去重] 发现重复文件: existingFileId={}, hash={}, 将复用存储对象", 
-                        existingFile.getId(), fileHash);
-                finalObjectName = existingFile.getObjectName();
+            // 6. 使用 FileService 获取或创建文件（支持全局去重）
+            String finalObjectName = generateFileObjectName(ownerId, finalFileName);
+            FileResult fileResult = fileService.getOrCreateFile(
+                    fileHash, finalObjectName, defaultBucket, session.getContentType(), session.getFileSize());
+
+            File file = fileResult.file();
+            boolean isDuplicate = !fileResult.isNew();
+
+            if (isDuplicate) {
+                // 发现重复内容，复用已存在的文件
+                log.info("[内容去重] 发现重复文件: fileId={}, hash={}, 将复用文件", 
+                        file.getId(), fileHash);
                 
                 // 删除临时合并的文件
                 try {
@@ -528,37 +535,30 @@ public class ChunkUploadServiceImpl implements ChunkUploadService {
                     log.warn("删除临时文件失败: {}", tempObjectName, e);
                 }
             } else {
-                // 新文件，使用临时文件并重命名
-                finalObjectName = generateFileObjectName(ownerId, finalFileName);
-                
-                // 如果临时文件名和最终文件名不同，需要复制
+                // 新文件，重命名临时文件为最终文件名
                 if (!tempObjectName.equals(finalObjectName)) {
                     try {
                         minioStorageService.copyObject(defaultBucket, tempObjectName, defaultBucket, finalObjectName);
                         minioStorageService.deleteChunks(defaultBucket, List.of(tempObjectName));
                     } catch (Exception e) {
                         log.error("重命名文件失败，将使用临时文件名", e);
-                        finalObjectName = tempObjectName;
+                        // 更新文件的 objectName（如果需要）
                     }
                 }
             }
 
-            // 7. 创建文件记录
-            long createFileStart = System.currentTimeMillis();
-            File file = File.builder()
+            // 7. 创建文件记录（关联文件）
+            long createFileRecordStart = System.currentTimeMillis();
+            FileRecord fileRecord = FileRecord.builder()
                     .ownerId(ownerId)
                     .originalFileName(finalFileName)
-                    .objectName(finalObjectName)
-                    .size(session.getFileSize())
-                    .contentType(session.getContentType())
-                    .fileHash(fileHash)
-                    .bucket(defaultBucket)
+                    .file(file)
                     .status(FileStatus.ACTIVE)
                     .build();
 
-            fileRepository.save(file);
-            log.info("[合并分片] 创建文件记录耗时: {}ms, fileId={}, isDuplicate={}", 
-                    System.currentTimeMillis() - createFileStart, file.getId(), existingFile != null);
+            fileRecordRepository.save(fileRecord);
+            log.info("[合并分片] 创建文件记录耗时: {}ms, fileRecordId={}, isDuplicate={}", 
+                    System.currentTimeMillis() - createFileRecordStart, fileRecord.getId(), isDuplicate);
 
             // 8. 更新会话状态
             long updateSessionStart = System.currentTimeMillis();
@@ -575,8 +575,8 @@ public class ChunkUploadServiceImpl implements ChunkUploadService {
             log.info("[合并分片] 清理临时分片耗时: {}ms", System.currentTimeMillis() - cleanupStart);
 
             long totalTime = System.currentTimeMillis() - mergeStartTime;
-            log.info("[合并分片-完成] uploadId={}, 总耗时={}ms, fileId={}, 内容去重={}", 
-                    session.getId(), totalTime, file.getId(), existingFile != null);
+            log.info("[合并分片-完成] uploadId={}, 总耗时={}ms, fileRecordId={}, 内容去重={}", 
+                    session.getId(), totalTime, fileRecord.getId(), isDuplicate);
 
             // 10. 返回完成响应
             return buildCompletedResponse(session, file, fileHash);

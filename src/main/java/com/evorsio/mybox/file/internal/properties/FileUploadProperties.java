@@ -1,5 +1,6 @@
 package com.evorsio.mybox.file.internal.properties;
 
+import com.evorsio.mybox.common.SizeUnitParser;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
@@ -34,5 +35,40 @@ public class FileUploadProperties {
         private String retryDelay = "5s";
         private boolean cleanupExpired = true;
         private String cleanupInterval = "1h";
+
+        /**
+         * 获取最小文件大小的字节数
+         */
+        public long getMinSizeInBytes() {
+            return SizeUnitParser.parseSizeToBytes(minSize);
+        }
+
+        /**
+         * 获取分片大小的字节数
+         */
+        public long getChunkSizeInBytes() {
+            return SizeUnitParser.parseSizeToBytes(chunkSize);
+        }
+
+        /**
+         * 获取会话超时的秒数
+         */
+        public long getSessionTimeoutInSeconds() {
+            return SizeUnitParser.parseTimeToSeconds(sessionTimeout);
+        }
+
+        /**
+         * 获取重试延迟的秒数
+         */
+        public long getRetryDelayInSeconds() {
+            return SizeUnitParser.parseTimeToSeconds(retryDelay);
+        }
+
+        /**
+         * 获取清理间隔的秒数
+         */
+        public long getCleanupIntervalInSeconds() {
+            return SizeUnitParser.parseTimeToSeconds(cleanupInterval);
+        }
     }
 }

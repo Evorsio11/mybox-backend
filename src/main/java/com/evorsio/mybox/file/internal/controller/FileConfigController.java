@@ -1,15 +1,24 @@
 package com.evorsio.mybox.file.internal.controller;
 
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.evorsio.mybox.auth.CurrentUser;
+import com.evorsio.mybox.auth.UserPrincipal;
 import com.evorsio.mybox.auth.UserRole;
 import com.evorsio.mybox.common.ApiResponse;
+import com.evorsio.mybox.common.ErrorCode;
 import com.evorsio.mybox.file.FileConfigResponse;
-import com.evorsio.mybox.file.FileConfigUpdateRequest;
 import com.evorsio.mybox.file.FileConfigService;
+import com.evorsio.mybox.file.FileConfigUpdateRequest;
+import com.evorsio.mybox.file.internal.exception.FileException;
+
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.*;
 
 /**
  * 文件配置控制器
@@ -27,8 +36,8 @@ public class FileConfigController {
      * GET /api/files/config
      */
     @GetMapping
-    public ApiResponse<FileConfigResponse> getFileConfig(Authentication authentication) {
-        log.info("用户 {} 获取文件配置", authentication.getName());
+    public ApiResponse<FileConfigResponse> getFileConfig(@CurrentUser UserPrincipal user) {
+        log.info("用户 {} 获取文件配置", user.getUsername());
 
         FileConfigResponse config = fileConfigService.getFileConfig();
         return ApiResponse.success("获取配置成功", config);
@@ -40,16 +49,16 @@ public class FileConfigController {
      */
     @PutMapping
     public ApiResponse<Void> updateFileConfig(
-            Authentication authentication,
+            @CurrentUser UserPrincipal user,
             @Valid @RequestBody FileConfigUpdateRequest request
     ) {
         // 检查用户权限
-        if (!isAdmin(authentication)) {
-            log.warn("用户 {} 尝试更新配置但权限不足", authentication.getName());
-            return ApiResponse.error("FORBIDDEN", "权限不足，仅管理员可以修改配置");
+        if (!isAdmin(user)) {
+            log.warn("用户 {} 尝试更新配置但权限不足", user.getUsername());
+            throw new FileException(ErrorCode.ACCESS_DENIED);
         }
 
-        log.info("管理员 {} 更新文件配置", authentication.getName());
+        log.info("管理员 {} 更新文件配置", user.getUsername());
         fileConfigService.updateFileConfig(request);
 
         return ApiResponse.success();
@@ -58,12 +67,7 @@ public class FileConfigController {
     /**
      * 检查用户是否为管理员
      */
-    private boolean isAdmin(Authentication authentication) {
-        if (authentication.getAuthorities() == null) {
-            return false;
-        }
-
-        return authentication.getAuthorities().stream()
-                .anyMatch(authority -> authority.getAuthority().equals("ROLE_" + UserRole.ADMIN.name()));
+    private boolean isAdmin(UserPrincipal user) {
+        return user.getRole() == UserRole.ADMIN;
     }
 }

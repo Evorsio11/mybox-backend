@@ -16,6 +16,9 @@ public enum ErrorCode {
     EMAIL_ALREADY_EXISTS("AUTH_1002", "邮箱已存在", HttpStatus.CONFLICT),
     USER_NOT_FOUND("AUTH_1003", "用户未找到", HttpStatus.NOT_FOUND),
     INVALID_CREDENTIALS("AUTH_1004", "用户凭据错误", HttpStatus.UNAUTHORIZED),
+    MISSING_AUTH_HEADER("AUTH_1005", "缺少 Authorization 头", HttpStatus.BAD_REQUEST),
+    INVALID_TOKEN("AUTH_1006", "令牌无效或已过期", HttpStatus.UNAUTHORIZED),
+    ACCESS_DENIED("AUTH_1007", "权限不足", HttpStatus.FORBIDDEN),
 
     // 设备 1500
     DEVICE_FINGERPRINT_MISMATCH("DEVICE_1501", "设备信息验证失败，请重新登录", HttpStatus.FORBIDDEN),
@@ -27,6 +30,9 @@ public enum ErrorCode {
 
     // 参数校验 1100
     VALIDATION_ERROR("AUTH_1100", "参数校验失败", HttpStatus.BAD_REQUEST),
+
+    // 限流 1200
+    RATE_LIMIT_EXCEEDED("AUTH_1200", "请求过于频繁，请稍后再试", HttpStatus.TOO_MANY_REQUESTS),
 
     // 文件 2000
     FILE_NOT_FOUND("FILE_2001", "文件不存在或已删除", HttpStatus.NOT_FOUND),

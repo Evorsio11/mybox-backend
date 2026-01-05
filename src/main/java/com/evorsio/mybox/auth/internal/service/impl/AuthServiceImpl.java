@@ -1,18 +1,6 @@
 package com.evorsio.mybox.auth.internal.service.impl;
 
-import java.util.Map;
-import java.util.UUID;
-
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
-
-import com.evorsio.mybox.auth.AuthService;
-import com.evorsio.mybox.auth.DeviceInfoDto;
-import com.evorsio.mybox.auth.RefreshTokenService;
-import com.evorsio.mybox.auth.TokenResponse;
-import com.evorsio.mybox.auth.TokenType;
-import com.evorsio.mybox.auth.User;
-import com.evorsio.mybox.auth.UserRole;
+import com.evorsio.mybox.auth.*;
 import com.evorsio.mybox.auth.internal.exception.AuthException;
 import com.evorsio.mybox.auth.internal.properties.AuthJwtProperties;
 import com.evorsio.mybox.auth.internal.repository.AuthRepository;
@@ -20,10 +8,14 @@ import com.evorsio.mybox.auth.internal.util.JwtClaimsBuilder;
 import com.evorsio.mybox.auth.internal.util.JwtUtil;
 import com.evorsio.mybox.common.ErrorCode;
 import com.evorsio.mybox.device.DeviceService;
-
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+
+import java.util.Map;
+import java.util.UUID;
 
 @Slf4j
 @Service
@@ -35,6 +27,7 @@ public class AuthServiceImpl implements AuthService {
     private final JwtUtil jwtUtil;
     private final AuthJwtProperties authJwtProperties;
     private final DeviceService deviceService;
+    private final TokenBlacklistService tokenBlacklistService;
 
     @Override
     public void register(String username, String email, String rawPassword, DeviceInfoDto deviceInfo) {
@@ -102,10 +95,25 @@ public class AuthServiceImpl implements AuthService {
         return new TokenResponse(
                 accessToken,
                 authJwtProperties.getTokenPrefix(),
-                authJwtProperties.getExpiration(),
+                authJwtProperties.getExpirationInSeconds(),
                 refreshToken,
                 deviceToken,
                 deviceId
         );
+    }
+
+    @Override
+    public void logout(UUID userId, String accessToken) {
+        log.info("用户 {} 开始登出", userId);
+
+        // 1. 删除 RefreshToken
+        refreshTokenService.deleteToken(userId);
+        log.debug("用户 {} 的 RefreshToken 已删除", userId);
+
+        // 2. 将 AccessToken 添加到黑名单
+        tokenBlacklistService.addToBlacklist(userId, accessToken);
+        log.debug("用户 {} 的 AccessToken 已添加到黑名单", userId);
+
+        log.info("用户 {} 登出成功（Token 已撤销）", userId);
     }
 }

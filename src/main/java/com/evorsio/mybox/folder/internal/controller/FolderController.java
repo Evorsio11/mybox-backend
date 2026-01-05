@@ -3,7 +3,6 @@ package com.evorsio.mybox.folder.internal.controller;
 import java.util.List;
 import java.util.UUID;
 
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -15,6 +14,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.evorsio.mybox.auth.CurrentUser;
+import com.evorsio.mybox.auth.UserPrincipal;
 import com.evorsio.mybox.common.ApiResponse;
 import com.evorsio.mybox.folder.FolderCreateRequest;
 import com.evorsio.mybox.folder.FolderMetadataUpdateRequest;
@@ -34,30 +35,27 @@ public class FolderController {
 
     @PostMapping
     public ApiResponse<FolderResponse> createFolder(
-            Authentication authentication,
+            @CurrentUser UserPrincipal user,
             @Valid @RequestBody FolderCreateRequest request
     ){
-        UUID userId = (UUID) authentication.getPrincipal();
-        return ApiResponse.success(folderService.createFolder(request,userId));
+        return ApiResponse.success(folderService.createFolder(request, user.getId()));
     }
 
 
     @GetMapping("/{folderId}/details")
     public ApiResponse<FolderResponse> getFolderDetails(
-            Authentication authentication,
+            @CurrentUser UserPrincipal user,
             @PathVariable UUID folderId
     ){
-        UUID userId = (UUID) authentication.getPrincipal();
-        return ApiResponse.success(folderService.getFolderDetails(folderId,userId));
+        return ApiResponse.success(folderService.getFolderDetails(folderId, user.getId()));
     }
 
     /**
      * 获取用户的根文件夹列表（懒加载第一层）
      */
     @GetMapping("/roots")
-    public ApiResponse<List<FolderResponse>> getRootFolders(Authentication authentication) {
-        UUID userId = (UUID) authentication.getPrincipal();
-        return ApiResponse.success(folderService.getRootFolders(userId));
+    public ApiResponse<List<FolderResponse>> getRootFolders(@CurrentUser UserPrincipal user) {
+        return ApiResponse.success(folderService.getRootFolders(user.getId()));
     }
 
     /**
@@ -67,11 +65,10 @@ public class FolderController {
      */
     @GetMapping("/children")
     public ApiResponse<List<FolderResponse>> getChildFolders(
-            Authentication authentication,
+            @CurrentUser UserPrincipal user,
             @RequestParam(required = false) UUID parentFolderId
     ) {
-        UUID userId = (UUID) authentication.getPrincipal();
-        return ApiResponse.success(folderService.getChildFolders(parentFolderId, userId));
+        return ApiResponse.success(folderService.getChildFolders(parentFolderId, user.getId()));
     }
 
     /**
@@ -79,12 +76,11 @@ public class FolderController {
      */
     @PutMapping("/{folderId}/rename")
     public ApiResponse<FolderResponse> renameFolder(
-            Authentication authentication,
+            @CurrentUser UserPrincipal user,
             @PathVariable UUID folderId,
             @Valid @RequestBody FolderRenameRequest request
     ) {
-        UUID userId = (UUID) authentication.getPrincipal();
-        return ApiResponse.success(folderService.renameFolder(folderId, request.getFolderName(), userId));
+        return ApiResponse.success(folderService.renameFolder(folderId, request.getFolderName(), user.getId()));
     }
 
     /**
@@ -92,12 +88,11 @@ public class FolderController {
      */
     @PutMapping("/{folderId}/move")
     public ApiResponse<FolderResponse> moveFolder(
-            Authentication authentication,
+            @CurrentUser UserPrincipal user,
             @PathVariable UUID folderId,
             @Valid @RequestBody FolderMoveRequest request
     ) {
-        UUID userId = (UUID) authentication.getPrincipal();
-        return ApiResponse.success(folderService.moveFolder(folderId, request.getTargetParentFolderId(), userId));
+        return ApiResponse.success(folderService.moveFolder(folderId, request.getTargetParentFolderId(), user.getId()));
     }
 
     /**
@@ -105,12 +100,11 @@ public class FolderController {
      */
     @PatchMapping("/{folderId}")
     public ApiResponse<FolderResponse> updateMetadata(
-            Authentication authentication,
+            @CurrentUser UserPrincipal user,
             @PathVariable UUID folderId,
             @RequestBody FolderMetadataUpdateRequest request
     ) {
-        UUID userId = (UUID) authentication.getPrincipal();
-        return ApiResponse.success(folderService.updateMetadata(folderId, request, userId));
+        return ApiResponse.success(folderService.updateMetadata(folderId, request, user.getId()));
     }
 
     /**
@@ -118,11 +112,10 @@ public class FolderController {
      */
     @DeleteMapping("/{folderId}")
     public ApiResponse<Void> deleteFolder(
-            Authentication authentication,
+            @CurrentUser UserPrincipal user,
             @PathVariable UUID folderId
     ) {
-        UUID userId = (UUID) authentication.getPrincipal();
-        folderService.deleteFolder(folderId, userId);
+        folderService.deleteFolder(folderId, user.getId());
         return ApiResponse.success();
     }
 
@@ -131,10 +124,9 @@ public class FolderController {
      */
     @PostMapping("/{folderId}/restore")
     public ApiResponse<FolderResponse> restoreFolder(
-            Authentication authentication,
+            @CurrentUser UserPrincipal user,
             @PathVariable UUID folderId
     ) {
-        UUID userId = (UUID) authentication.getPrincipal();
-        return ApiResponse.success(folderService.restoreFolder(folderId, userId));
+        return ApiResponse.success(folderService.restoreFolder(folderId, user.getId()));
     }
 }

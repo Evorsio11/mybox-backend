@@ -13,10 +13,10 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update
-    show-sql: true
+    show-sql: false
     properties:
       hibernate:
-        format_sql: true
+        format_sql: false
   security:
     user:
       name: user
@@ -41,11 +41,43 @@ mybox:
   auth:
     jwt:
       secret: my_super_secret_jwt_key_for_development_only_do_not_use_in_production
-      expiration: 86400
-      refresh-expiration: 604800
+      expiration: 1d                 # 访问令牌有效期：1天
+      refresh-expiration: 7d         # 刷新令牌有效期：7天
       issuer: mybox-server
       audience: mybox-client
       token-prefix: Bearer
+    rate-limit:
+      # 全局默认配置
+      enabled: true                    # 限流功能总开关
+      window: 1m                       # 默认时间窗口：30s/5m/1h/1d
+      max-requests: 100                # 默认最大请求次数
+      scope: user                      # 默认限流对象：global/ip/user
+      action: reject                   # 超限处理：reject/queue/delay
+
+      # 各接口具体配置（部署者可以根据需求调整）
+      login:
+        enabled: true                  # 登录接口限流开关
+        window: 5m                     # 时间窗口
+        max-requests: 5                # 最大请求次数
+        scope: ip                      # 按IP限流（防暴力破解）
+
+      register:
+        enabled: true                  # 注册接口限流开关
+        window: 1h                     # 时间窗口
+        max-requests: 3                # 最大请求次数
+        scope: ip                      # 按IP限流（防批量注册）
+
+      refresh:
+        enabled: true                  # 刷新令牌限流开关
+        window: 1m                     # 时间窗口
+        max-requests: 10               # 最大请求次数
+        scope: user                    # 按用户限流
+
+      logout:
+        enabled: true                  # 登出接口限流开关
+        window: 1m                     # 时间窗口
+        max-requests: 10               # 最大请求次数
+        scope: user                    # 按用户限流
   common:
     cors:
       allowed-origins: http://192.168.1.11:3000, http://localhost:3000

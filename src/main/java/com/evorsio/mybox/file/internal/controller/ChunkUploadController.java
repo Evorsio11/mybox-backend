@@ -2,13 +2,14 @@ package com.evorsio.mybox.file.internal.controller;
 
 import java.util.UUID;
 
-import org.springframework.security.core.Authentication;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.evorsio.mybox.auth.CurrentUser;
+import com.evorsio.mybox.auth.UserPrincipal;
 import com.evorsio.mybox.common.ApiResponse;
 import com.evorsio.mybox.file.ChunkUploadService;
 import com.evorsio.mybox.file.UnifiedChunkUploadRequest;
@@ -35,11 +36,11 @@ public class ChunkUploadController {
      */
     @PostMapping("/unified")
     public ApiResponse<UnifiedChunkUploadResponse> uploadChunkUnified(
-            Authentication authentication,
+            @CurrentUser UserPrincipal user,
             @Valid @ModelAttribute UnifiedChunkUploadRequest request) {
 
         long startTime = System.currentTimeMillis();
-        UUID ownerId = (UUID) authentication.getPrincipal();
+        UUID ownerId = user.getId();
 
         log.info("[分片上传-开始] ownerId={}, fileIdentifier={}, fileName={}, chunkNumber={}/{}, fileSize={}",
                 ownerId, request.getFileIdentifier(), request.getOriginalFileName(),

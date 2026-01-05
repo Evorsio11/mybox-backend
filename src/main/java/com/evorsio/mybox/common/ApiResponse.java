@@ -90,13 +90,14 @@ public class ApiResponse<T> {
     }
 
     /**
-     * 错误响应（带 code）
+     * 创建错误响应（仅用于全局异常处理器）
+     * @param errorCode 错误码枚举
      */
-    public static <T> ApiResponse<T> error(String code, String message) {
+    public static <T> ApiResponse<T> error(ErrorCode errorCode) {
         return new ApiResponse<>(
                 false,
-                code,
-                message,
+                errorCode.getCode(),
+                errorCode.getMessage(),
                 null,
                 null,
                 Instant.now().getEpochSecond()
@@ -104,14 +105,32 @@ public class ApiResponse<T> {
     }
 
     /**
-     * 错误响应（带 code 和 details）
+     * 创建错误响应（仅用于全局异常处理器）
+     * @param errorCode 错误码枚举
+     * @param customMessage 自定义错误消息
      */
-    public static <T> ApiResponse<T> error(String code, String message, List<FieldError> details) {
+    public static <T> ApiResponse<T> error(ErrorCode errorCode, String customMessage) {
+        return new ApiResponse<>(
+                false,
+                errorCode.getCode(),
+                customMessage,
+                null,
+                null,
+                Instant.now().getEpochSecond()
+        );
+    }
+
+    /**
+     * 创建错误响应（仅用于全局异常处理器，带字段校验详情）
+     * @param errorCode 错误码枚举
+     * @param details 字段校验错误详情
+     */
+    public static <T> ApiResponse<T> error(ErrorCode errorCode, List<FieldError> details) {
         ErrorDetail errorDetail = new ErrorDetail(details);
         return new ApiResponse<>(
                 false,
-                code,
-                message,
+                errorCode.getCode(),
+                errorCode.getMessage(),
                 null,
                 errorDetail,
                 Instant.now().getEpochSecond()

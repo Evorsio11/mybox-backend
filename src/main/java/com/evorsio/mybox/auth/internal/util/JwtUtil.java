@@ -21,11 +21,15 @@ import java.util.Map;
 public class JwtUtil {
     private final AuthJwtProperties authJwtProperties;
 
+    public AuthJwtProperties getAuthJwtProperties() {
+        return authJwtProperties;
+    }
+
     public String generateToken(String subject, Map<String, Object> claims, TokenType tokenType) {
         Date now = new Date();
         long expiration = tokenType == TokenType.ACCESS
-                ? authJwtProperties.getExpiration()
-                : authJwtProperties.getRefreshExpiration();
+                ? authJwtProperties.getExpirationInSeconds()
+                : authJwtProperties.getRefreshExpirationInSeconds();
 
         Date exp = new Date(now.getTime() + expiration * 1000);
 

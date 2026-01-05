@@ -21,7 +21,7 @@ public class RedisRefreshTokenService implements RefreshTokenService {
         redisTemplate.opsForValue().set(
                 buildKey(userId),
                 refreshToken,
-                authJwtProperties.getRefreshExpiration(),
+                authJwtProperties.getRefreshExpirationInSeconds(),
                 TimeUnit.SECONDS
         );
     }

@@ -11,7 +11,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -23,12 +22,14 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.evorsio.mybox.auth.CurrentUser;
+import com.evorsio.mybox.auth.UserPrincipal;
 import com.evorsio.mybox.common.ApiResponse;
-import com.evorsio.mybox.file.File;
 import com.evorsio.mybox.file.FileConfigService;
 import com.evorsio.mybox.file.FileIdRequest;
 import com.evorsio.mybox.file.FileMoveRequest;
-import com.evorsio.mybox.file.FileService;
+import com.evorsio.mybox.file.FileRecord;
+import com.evorsio.mybox.file.FileRecordService;
 import com.evorsio.mybox.file.FileUploadResponse;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -42,16 +43,16 @@ import lombok.extern.slf4j.Slf4j;
 @RequestMapping("/api/files")
 @RequiredArgsConstructor
 public class FileController {
-    private final FileService fileService;
+    private final FileRecordService fileRecordService;
     private final FileConfigService fileConfigService;
 
     @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ApiResponse<List<FileUploadResponse>> upload(
-            Authentication authentication,
+            @CurrentUser UserPrincipal user,
             @RequestParam("files") List<MultipartFile> files,
             @RequestParam(value = "folderId", required = false) UUID folderId
     ) {
-        UUID ownerId = (UUID) authentication.getPrincipal();
+        UUID ownerId = user.getId();
 
         // 验证文件列表不为空
         if (files == null || files.isEmpty()) {
@@ -61,7 +62,7 @@ public class FileController {
         List<FileUploadResponse> results = files.stream()
                 .map(file -> {
                     try {
-                        File uploadedFile = fileService.uploadFile(
+                        FileRecord uploadedFileRecord = fileRecordService.uploadFileRecord(
                                 ownerId,
                                 folderId,
                                 file.getOriginalFilename(),
@@ -76,13 +77,13 @@ public class FileController {
                             log.info("大文件已通过普通上传成功，建议下次使用分片上传: fileName={}, size={}",
                                     file.getOriginalFilename(), file.getSize());
                             return new FileUploadResponse(
-                                    uploadedFile.getOriginalFileName(),
+                                    uploadedFileRecord.getOriginalFileName(),
                                     true,
                                     "上传成功（提示：大文件建议使用分片上传接口以获得更好的上传体验）"
                             );
                         }
 
-                        return new FileUploadResponse(uploadedFile.getOriginalFileName(), true, "上传成功");
+                        return new FileUploadResponse(uploadedFileRecord.getOriginalFileName(), true, "上传成功");
                     } catch (Exception e) {
                         log.error("上传文件失败: {}", file.getOriginalFilename(), e);
                         return new FileUploadResponse(file.getOriginalFilename(), false, e.getMessage());
@@ -112,22 +113,22 @@ public class FileController {
      */
     @PostMapping("/download")
     public ResponseEntity<InputStreamResource> downloadFile(
-            Authentication authentication,
+            @CurrentUser UserPrincipal user,
             @Valid @RequestBody FileIdRequest request,
             HttpServletRequest httpServletRequest) {
 
         // 获取当前用户的 ID
-        UUID ownerId = (UUID) authentication.getPrincipal();
+        UUID ownerId = user.getId();
 
-        // 获取文件对象
-        File file = fileService.getActiveFileById(ownerId, request.getFileId());
+        // 获取文件记录对象
+        FileRecord fileRecord = fileRecordService.getActiveFileRecordById(ownerId, request.getFileId());
 
         // 获取文件输入流
-        InputStream inputStream = fileService.downloadFile(ownerId, request.getFileId());
+        InputStream inputStream = fileRecordService.downloadFileRecord(ownerId, request.getFileId());
         InputStreamResource resource = new InputStreamResource(inputStream);
 
         // 对文件名进行 URL 编码
-        String safeFileName = URLEncoder.encode(file.getOriginalFileName(), StandardCharsets.UTF_8);
+        String safeFileName = URLEncoder.encode(fileRecord.getOriginalFileName(), StandardCharsets.UTF_8);
 
         // 检查 Range 请求头
         String rangeHeader = httpServletRequest.getHeader(HttpHeaders.RANGE);
@@ -136,25 +137,26 @@ public class FileController {
                 // 处理 Range 请求，返回文件的部分内容
                 String[] ranges = rangeHeader.substring(6).split("-");
                 long start = Long.parseLong(ranges[0]);
-                long end = (ranges.length > 1) ? Long.parseLong(ranges[1]) : file.getSize() - 1;
+                long fileSize = fileRecord.getSize();
+                long end = (ranges.length > 1) ? Long.parseLong(ranges[1]) : fileSize - 1;
 
                 // 检查请求的范围是否合法
-                if (start >= file.getSize()) {
+                if (start >= fileSize) {
                     return ResponseEntity.status(HttpStatus.REQUESTED_RANGE_NOT_SATISFIABLE).body(null);
                 }
 
                 // 限制 end 不能超过文件大小
-                end = Math.min(end, file.getSize() - 1);
+                end = Math.min(end, fileSize - 1);
 
                 // 获取部分文件输入流
-                InputStream partialInputStream = fileService.downloadPartialFile(ownerId, request.getFileId(), start, end);
+                InputStream partialInputStream = fileRecordService.downloadPartialFileRecord(ownerId, request.getFileId(), start, end);
                 InputStreamResource partialResource = new InputStreamResource(partialInputStream);
 
                 // 设置响应头，指示返回的文件部分
                 HttpHeaders headers = new HttpHeaders();
-                headers.add(HttpHeaders.CONTENT_RANGE, "bytes " + start + "-" + end + "/" + file.getSize());
+                headers.add(HttpHeaders.CONTENT_RANGE, "bytes " + start + "-" + end + "/" + fileSize);
                 headers.add(HttpHeaders.CONTENT_LENGTH, String.valueOf(end - start + 1));
-                headers.add(HttpHeaders.CONTENT_TYPE, file.getContentType());
+                headers.add(HttpHeaders.CONTENT_TYPE, fileRecord.getContentType());
 
                 // 返回 206 Partial Content
                 return new ResponseEntity<>(partialResource, headers, HttpStatus.PARTIAL_CONTENT);
@@ -166,41 +168,41 @@ public class FileController {
         // 如果没有 Range 请求头，返回整个文件
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename*=UTF-8''" + safeFileName)
-                .contentType(MediaType.parseMediaType(file.getContentType()))
+                .contentType(MediaType.parseMediaType(fileRecord.getContentType()))
                 .body(resource);
     }
 
     @PostMapping("/delete")
     public ApiResponse<Void> delete(
-            Authentication authentication,
+            @CurrentUser UserPrincipal user,
             @Valid @RequestBody FileIdRequest request
     ) {
-        UUID ownerId = (UUID) authentication.getPrincipal();
-        fileService.deleteFile(ownerId, request.getFileId());
+        UUID ownerId = user.getId();
+        fileRecordService.deleteFileRecord(ownerId, request.getFileId());
         return ApiResponse.success();
     }
 
     @GetMapping
-    public ApiResponse<List<File>> listFiles(Authentication authentication) {
-        UUID ownerId = (UUID) authentication.getPrincipal();
-        List<File> files = fileService.listFiles(ownerId);
-        return ApiResponse.success("获取文件列表成功", files);
+    public ApiResponse<List<FileRecord>> listFiles(@CurrentUser UserPrincipal user) {
+        UUID ownerId = user.getId();
+        List<FileRecord> fileRecords = fileRecordService.listFileRecords(ownerId);
+        return ApiResponse.success("获取文件列表成功", fileRecords);
     }
 
     @GetMapping("/deleted")
-    public ApiResponse<List<File>> listDeletedFiles(Authentication authentication) {
-        UUID ownerId = (UUID) authentication.getPrincipal();
-        List<File> files = fileService.listDeletedFiles(ownerId);
-        return ApiResponse.success("获取已删除文件列表成功", files);
+    public ApiResponse<List<FileRecord>> listDeletedFiles(@CurrentUser UserPrincipal user) {
+        UUID ownerId = user.getId();
+        List<FileRecord> fileRecords = fileRecordService.listDeletedFileRecords(ownerId);
+        return ApiResponse.success("获取已删除文件列表成功", fileRecords);
     }
 
     @PostMapping("/restore")
     public ApiResponse<Void> restore(
-            Authentication authentication,
+            @CurrentUser UserPrincipal user,
             @RequestBody FileIdRequest request
     ) {
-        UUID ownerId = (UUID) authentication.getPrincipal();
-        fileService.restoreFile(ownerId, request.getFileId());
+        UUID ownerId = user.getId();
+        fileRecordService.restoreFileRecord(ownerId, request.getFileId());
         return ApiResponse.success();
     }
 
@@ -208,36 +210,36 @@ public class FileController {
      * 获取指定文件夹内的文件列表
      */
     @GetMapping("/folder/{folderId}")
-    public ApiResponse<List<File>> listFilesByFolder(
-            Authentication authentication,
+    public ApiResponse<List<FileRecord>> listFilesByFolder(
+            @CurrentUser UserPrincipal user,
             @PathVariable UUID folderId
     ) {
-        UUID ownerId = (UUID) authentication.getPrincipal();
-        List<File> files = fileService.listFilesByFolder(ownerId, folderId);
-        return ApiResponse.success("获取文件夹内文件列表成功", files);
+        UUID ownerId = user.getId();
+        List<FileRecord> fileRecords = fileRecordService.listFileRecordsByFolder(ownerId, folderId);
+        return ApiResponse.success("获取文件夹内文件列表成功", fileRecords);
     }
 
     /**
      * 获取未分类文件列表（folderId 为 null）
      */
     @GetMapping("/unclassified")
-    public ApiResponse<List<File>> listUnclassifiedFiles(Authentication authentication) {
-        UUID ownerId = (UUID) authentication.getPrincipal();
-        List<File> files = fileService.listUnclassifiedFiles(ownerId);
-        return ApiResponse.success("获取未分类文件列表成功", files);
+    public ApiResponse<List<FileRecord>> listUnclassifiedFiles(@CurrentUser UserPrincipal user) {
+        UUID ownerId = user.getId();
+        List<FileRecord> fileRecords = fileRecordService.listUnclassifiedFileRecords(ownerId);
+        return ApiResponse.success("获取未分类文件列表成功", fileRecords);
     }
 
     /**
      * 移动文件到指定文件夹
      */
     @PutMapping("/{fileId}/move")
-    public ApiResponse<File> moveFileToFolder(
-            Authentication authentication,
+    public ApiResponse<FileRecord> moveFileToFolder(
+            @CurrentUser UserPrincipal user,
             @PathVariable UUID fileId,
             @Valid @RequestBody FileMoveRequest request
     ) {
-        UUID ownerId = (UUID) authentication.getPrincipal();
-        File movedFile = fileService.moveFileToFolder(ownerId, fileId, request.getTargetFolderId());
-        return ApiResponse.success("文件移动成功", movedFile);
+        UUID ownerId = user.getId();
+        FileRecord movedFileRecord = fileRecordService.moveFileRecordToFolder(ownerId, fileId, request.getTargetFolderId());
+        return ApiResponse.success("文件移动成功", movedFileRecord);
     }
 }

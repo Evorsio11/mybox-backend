@@ -11,6 +11,7 @@ import org.springframework.security.oauth2.jwt.JwtException;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import com.evorsio.mybox.auth.TokenBlacklistService;
 import com.evorsio.mybox.auth.internal.properties.AuthJwtProperties;
 import com.evorsio.mybox.auth.internal.util.JwtUtil;
 
@@ -29,6 +30,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtUtil jwtUtil;
     private final UserDetailsService userDetailsService;
     private final AuthJwtProperties authJwtProperties;
+    private final TokenBlacklistService tokenBlacklistService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
@@ -37,35 +39,41 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             String token = authHeader.substring(authJwtProperties.getTokenPrefix().length()).trim();  // 去掉空格
 
             try {
-                log.info("正在处理 token: {}", token);
+                log.debug("正在验证 token: {}", token.substring(0, Math.min(20, token.length())) + "...");
+
+                // 解析 token 获取用户名等信息
+                Claims claims = jwtUtil.parseToken(token);
+                String userIdStr = claims.getSubject();
+                String username = claims.get("username", String.class);
 
                 // 验证 token 是否有效
                 if (!jwtUtil.validateToken(token, authJwtProperties.getIssuer())) {
-                    log.warn("无效或过期的令牌: {}", token);
+                    log.warn("无效或过期的令牌: userId={}", userIdStr);
                     response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "无效或者过期的令牌");
                     return;
                 }
 
-                // 解析 token 获取用户名等信息
-                Claims claims = jwtUtil.parseToken(token);
-                String username = claims.get("username", String.class);
+                // 检查 token 是否在黑名单中
+                UUID userId = UUID.fromString(userIdStr);
+                if (tokenBlacklistService.isBlacklisted(userId, token)) {
+                    log.warn("Token 已被撤销（在黑名单中）: userId={}", userId);
+                    response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "令牌已被撤销");
+                    return;
+                }
 
                 if (username != null) {
-                    log.info("认证成功，用户名: {}", username);
+                    log.debug("认证成功，用户名: {}, userId: {}", username, userId);
 
-                    // 加载用户信息
+                    // 加载用户信息（返回 UserPrincipal）
                     UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
-                    // 从 JWT 的 subject 中获取用户 ID (UUID)
-                    String sub = claims.getSubject(); // JWT sub 应该是用户 ID
-                    UUID userId = UUID.fromString(sub);
-
-                    // 将 userId 作为 principal，而不是 UserDetails
+                    // 将 UserPrincipal 作为 principal（包含 ID、用户名、角色等完整信息）
                     UsernamePasswordAuthenticationToken authentication =
-                            new UsernamePasswordAuthenticationToken(userId, null, userDetails.getAuthorities());
-
-                    // 可以将 UserDetails 放到 details 中，如果后续需要的话
-                    authentication.setDetails(userDetails);
+                            new UsernamePasswordAuthenticationToken(
+                                    userDetails,  // UserPrincipal
+                                    null,
+                                    userDetails.getAuthorities()
+                            );
 
                     SecurityContextHolder.getContext().setAuthentication(authentication);
                 }
