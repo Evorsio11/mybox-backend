@@ -1,4 +1,4 @@
-package com.evorsio.mybox.search.repository;
+package com.evorsio.mybox.search.internal.repository;
 
 import com.evorsio.mybox.search.FileVector;
 import com.evorsio.mybox.search.IndexStatus;
